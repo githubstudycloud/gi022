@@ -1,24 +1,57 @@
-# 测试树模型结构草案
+# 测试树模型结构确认稿
 
-## 1. 文档目的
+## 1. 这份文档的作用
 
-这份文档不是最终实现，而是把当前理解下的“模型树数据结构”先用 Markdown 方式展开，方便你确认：
+这份文档只做一件事：
 
-- 节点公共结构是否合理
-- 不同类型节点的层级关系是否符合你的业务
-- 哪些约束需要固化成规则
-- 哪些地方仍然需要你拍板
+- 用你刚确认的规则，把这棵树的大致模型结构写清楚
+- 尽量用“结构树”而不是 JSON 来表达
+- 把我理解到的硬约束单独列出来，方便你逐条确认
 
-当前草案默认：
+## 2. 已确认的统一口径
 
-- `测试版本` 先视为 `执行版本`
-- `测试项` 先视为 `特性`
+以下内容按你刚刚的反馈，作为当前确认版本：
 
-如果这两个假设不成立，后面要拆类型。
+1. `测试版本 = 执行版本`
+2. `测试项 = 目录`
+3. `容器版本` 在结构层面等价于 `基线版本`
+4. `容器版本` 的下挂内容与 `基线版本` 类似
+5. `用例容器` 不能出现在 `场景` 下
+6. `基线版本`、`容器版本`、`执行版本` 都只能直接挂一个 `用例容器`
+7. `执行版本` 下面先挂 `用例容器`
+8. `用例容器` 下面可以挂 `场景`
+9. 一旦 `用例容器` 下挂了 `场景`，后续 `目录 / 特性 / 用例` 只能建在 `场景` 下，不能再直接建在 `用例容器` 下
+10. `执行版本` 不能切换模式
+11. `特性` 和 `目录` 等价，可以互相改 `type`
 
-## 2. 节点公共结构
+## 3. 当前节点类型
 
-先不管节点属于哪一种类型，所有树节点先统一成一个公共结构。
+先按这个集合理解：
+
+```ts
+type NodeType =
+  | "space"
+  | "product"
+  | "baseline_version"
+  | "container_version"
+  | "execution_version"
+  | "case_container"
+  | "test_scene"
+  | "directory"
+  | "feature"
+  | "baseline_case"
+  | "execution_case";
+```
+
+补充说明：
+
+- 这里不再单独保留 `test_item`
+- 如果业务里出现“测试项”这个说法，当前先映射成 `directory`
+- `feature` 和 `directory` 视为同层级、同能力、可互转
+
+## 4. 节点公共结构
+
+虽然下面主要用结构树举例，但节点本体仍建议统一成一个公共结构。
 
 ```ts
 type TreeNode = {
@@ -32,10 +65,8 @@ type TreeNode = {
   sortOrder?: number;
   status?: string;
   meta?: {
-    executionMode?: "single_container" | "multi_scene";
-    convertedFrom?: "feature" | null;
-    sourceVersionType?: "baseline_version" | "execution_version" | null;
-    dynamicFieldSchemaId?: string | null;
+    lockedMode?: "container_direct" | "scene_grouped";
+    sourceVersionType?: "baseline_version" | "container_version" | "execution_version" | null;
     [key: string]: unknown;
   };
   extFields?: Record<string, unknown>;
@@ -43,334 +74,283 @@ type TreeNode = {
 };
 ```
 
-## 3. 节点类型建议
+## 5. 总体结构树
 
-```ts
-type NodeType =
-  | "space"
-  | "product"
-  | "container_version"
-  | "baseline_version"
-  | "execution_version"
-  | "case_container"
-  | "test_scene"
-  | "feature"
-  | "directory"
-  | "baseline_case"
-  | "execution_case";
-```
+先把最大框架用树表示出来。
 
-## 4. 不同类型的额外语义
-
-| 类型 | 说明 | 典型额外字段 |
-| --- | --- | --- |
-| `space` | 顶层业务空间 | 空间编码、负责人 |
-| `product` | 产品节点 | 产品线、产品状态 |
-| `container_version` | 容器版本 | 来源、版本号、适用范围 |
-| `baseline_version` | 基线版本 | 基线状态、生效时间 |
-| `execution_version` | 执行版本 | `meta.executionMode` |
-| `case_container` | 用例容器 | 容器类型、规则模板 |
-| `test_scene` | 测试场景 | 场景标签、入口条件 |
-| `feature` | 特性/测试项 | 特性描述、归属模块 |
-| `directory` | 目录 | `meta.convertedFrom` |
-| `baseline_case` | 基线用例 | 基线来源、冻结状态 |
-| `execution_case` | 执行用例 | 执行状态、结果、执行人 |
-
-## 5. 例子一：空间 -> 产品 -> 基线版本 -> 用例容器 -> 目录/特性 -> 基线用例
-
-这是“产品下面挂基线版本”的典型结构。
-
-```json
-{
-  "longIdPath": "space-1",
-  "shortId": "SP-1",
-  "currentLevelId": "space-1",
-  "type": "space",
-  "name": "主空间",
-  "number": "SPACE-001",
-  "children": [
-    {
-      "longIdPath": "space-1/product-1",
-      "shortId": "PD-1",
-      "currentLevelId": "product-1",
-      "type": "product",
-      "name": "产品A",
-      "number": "PROD-001",
-      "children": [
-        {
-          "longIdPath": "space-1/product-1/baseline-1",
-          "shortId": "BL-1",
-          "currentLevelId": "baseline-1",
-          "type": "baseline_version",
-          "name": "基线版本A",
-          "number": "BL-001",
-          "children": [
-            {
-              "longIdPath": "space-1/product-1/baseline-1/container-1",
-              "shortId": "CC-1",
-              "currentLevelId": "container-1",
-              "type": "case_container",
-              "name": "基线用例容器",
-              "number": "CC-001",
-              "children": [
-                {
-                  "longIdPath": "space-1/product-1/baseline-1/container-1/dir-1",
-                  "shortId": "DIR-1",
-                  "currentLevelId": "dir-1",
-                  "type": "directory",
-                  "name": "一级目录",
-                  "number": "DIR-001",
-                  "children": [
-                    {
-                      "longIdPath": "space-1/product-1/baseline-1/container-1/dir-1/feature-1",
-                      "shortId": "FT-1",
-                      "currentLevelId": "feature-1",
-                      "type": "feature",
-                      "name": "登录特性",
-                      "number": "FEAT-001",
-                      "children": [
-                        {
-                          "longIdPath": "space-1/product-1/baseline-1/container-1/dir-1/feature-1/case-1",
-                          "shortId": "BC-1",
-                          "currentLevelId": "case-1",
-                          "type": "baseline_case",
-                          "name": "基线用例1",
-                          "number": "CASE-001"
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    }
-  ]
-}
-```
-
-### 这个例子的约束
-
-- `space` 可以挂 `product`
-- `product` 可以挂 `baseline_version`
-- `baseline_version` 必须有且仅有一个 `case_container`
-- `case_container` 下允许 `directory` 和 `feature`
-- `directory` 和 `feature` 下都允许继续挂 `directory`、`feature`、`baseline_case`
-- 在 `baseline_version` 上下文下，用例必须是 `baseline_case`
-
-## 6. 例子二：空间直接挂基线版本，再挂多个执行版本
-
-这是“空间下直接挂基线版本”的结构。
-
-```yaml
+```text
 space
-└─ baseline_version
-   ├─ case_container
-   │  ├─ directory
-   │  ├─ feature
-   │  └─ baseline_case
-   ├─ execution_version(exec-A)
-   ├─ execution_version(exec-B)
-   └─ execution_version(exec-C)
+├─ product
+│  ├─ baseline_version
+│  │  └─ case_container
+│  │     ├─ directory
+│  │     ├─ feature
+│  │     ├─ baseline_case
+│  │     └─ execution_version
+│  │        └─ case_container
+│  │           ├─ directory / feature / execution_case
+│  │           └─ test_scene
+│  │              ├─ directory
+│  │              ├─ feature
+│  │              └─ execution_case
+│  └─ container_version
+│     └─ case_container
+│        ├─ directory
+│        ├─ feature
+│        ├─ baseline_case
+│        └─ execution_version
+│           └─ case_container
+│              ├─ directory / feature / execution_case
+│              └─ test_scene
+│                 ├─ directory
+│                 ├─ feature
+│                 └─ execution_case
+├─ baseline_version
+│  └─ case_container
+├─ container_version
+│  └─ case_container
+└─ product
+```
+
+上面这棵树只表达“能出现在哪一层”，不表达所有细约束。
+下面分场景拆开。
+
+## 6. 结构例子一：空间下直接挂基线版本
+
+```text
+space(主空间)
+└─ baseline_version(基线版本A)
+   └─ case_container(基线用例容器)
+      ├─ directory(一级目录)
+      │  ├─ directory(二级目录)
+      │  │  └─ baseline_case(基线用例1)
+      │  └─ feature(登录特性)
+      │     └─ baseline_case(基线用例2)
+      ├─ feature(支付特性)
+      │  └─ baseline_case(基线用例3)
+      └─ execution_version(执行版本A)
+         └─ case_container(执行用例容器)
+            ├─ directory(执行目录A)
+            ├─ feature(执行特性A)
+            └─ execution_case(执行用例1)
 ```
 
 ### 这个例子的约束
 
 - `space` 可以直接挂 `baseline_version`
-- 一个 `baseline_version` 下可以挂多个 `execution_version`
-- 但同一个 `baseline_version` 下只能有一个直属 `case_container`
+- `baseline_version` 只能直接挂一个 `case_container`
+- `baseline_version` 的 `case_container` 下可以挂：
+  - `directory`
+  - `feature`
+  - `baseline_case`
+  - `execution_version`
+- 这个上下文里，目录和特性下面的用例应是 `baseline_case`
 
-## 7. 例子三：执行版本单容器模式
+## 7. 结构例子二：产品下挂容器版本
 
-这是“执行版本下面挂单个容器版本”的模式。
+因为你确认了“容器版本等价于基线版本”，所以结构上按同一套理解。
 
-```json
-{
-  "type": "execution_version",
-  "name": "执行版本A",
-  "meta": {
-    "executionMode": "single_container"
-  },
-  "children": [
-    {
-      "type": "container_version",
-      "name": "执行容器版本A",
-      "children": []
-    }
-  ]
-}
+```text
+space(主空间)
+└─ product(产品A)
+   └─ container_version(容器版本A)
+      └─ case_container(容器用例容器)
+         ├─ directory(冒烟目录)
+         │  └─ baseline_case(基线类用例1)
+         ├─ feature(核心链路特性)
+         │  └─ baseline_case(基线类用例2)
+         └─ execution_version(执行版本B)
+            └─ case_container(执行用例容器B)
+               └─ execution_case(执行用例1)
 ```
 
 ### 这个例子的约束
 
-- `execution_version.meta.executionMode = "single_container"`
-- 该模式下只能有一个 `container_version`
-- 该模式下不能再有 `test_scene`
-- 也不能同时出现“一个容器版本 + 多个场景”
+- `product` 可以挂 `container_version`
+- `container_version` 只能直接挂一个 `case_container`
+- `container_version` 下的挂法与 `baseline_version` 类似
+- 当前草案把 `container_version` 分支里的直接用例也暂按基线侧处理
 
-## 8. 例子四：执行版本多场景模式
+这里有一个仍建议你最终再确认的点：
 
-这是“执行版本下面挂多个场景”的模式。
+- `container_version` 分支下的直接用例，是否真的应该归为 `baseline_case`
 
-```json
-{
-  "type": "execution_version",
-  "name": "执行版本B",
-  "meta": {
-    "executionMode": "multi_scene"
-  },
-  "children": [
-    {
-      "type": "test_scene",
-      "name": "支付场景",
-      "children": [
-        {
-          "type": "feature",
-          "name": "支付特性",
-          "children": [
-            {
-              "type": "directory",
-              "name": "支付目录",
-              "meta": {
-                "convertedFrom": "feature"
-              },
-              "children": [
-                {
-                  "type": "execution_case",
-                  "name": "执行用例1"
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "type": "test_scene",
-      "name": "退款场景",
-      "children": []
-    }
-  ]
-}
+## 8. 结构例子三：执行版本的“容器直挂内容”形态
+
+你说“执行版本不能切模式”，我这里的理解是：
+
+- 执行版本存在两种组织形态
+- 但一旦走了其中一种，就锁定，不能互相切换
+
+第一种形态是：`执行版本 -> 用例容器 -> 直接挂目录/特性/执行用例`
+
+```text
+execution_version(执行版本A)
+└─ case_container(执行用例容器)
+   ├─ directory(回归目录)
+   │  └─ execution_case(执行用例1)
+   ├─ feature(支付特性)
+   │  └─ execution_case(执行用例2)
+   └─ execution_case(执行用例3)
 ```
 
 ### 这个例子的约束
 
-- `execution_version.meta.executionMode = "multi_scene"`
-- 该模式下至少有一个 `test_scene`
-- 该模式下不能有 `container_version`
-- `test_scene` 下初始只能先建 `feature`
-- 如果 `test_scene` 下面直接出现 `directory`，需要满足：
+- `execution_version` 只能直接挂一个 `case_container`
+- 这里的 `case_container` 没有挂 `test_scene`
+- 因此允许直接在 `case_container` 下挂：
+  - `directory`
+  - `feature`
+  - `execution_case`
 
-```json
-{
-  "type": "directory",
-  "meta": {
-    "convertedFrom": "feature"
-  }
-}
+## 9. 结构例子四：执行版本的“场景分组”形态
+
+第二种形态是：`执行版本 -> 用例容器 -> 场景 -> 目录/特性/执行用例`
+
+```text
+execution_version(执行版本B)
+└─ case_container(执行用例容器)
+   ├─ test_scene(登录场景)
+   │  ├─ directory(登录目录)
+   │  │  └─ execution_case(执行用例1)
+   │  ├─ feature(验证码特性)
+   │  │  └─ execution_case(执行用例2)
+   │  └─ execution_case(执行用例3)
+   └─ test_scene(支付场景)
+      ├─ directory(支付目录)
+      └─ feature(退款特性)
 ```
 
-- 在 `execution_version` 上下文下，用例必须是 `execution_case`
+### 这个例子的约束
 
-## 9. 例子五：目录和特性的递归嵌套
+- `execution_version` 只能直接挂一个 `case_container`
+- `case_container` 一旦挂了 `test_scene`
+- 那么后续 `directory / feature / execution_case` 只能建在 `test_scene` 下
+- 不能再直接建在 `case_container` 下
 
-当前理解下，目录和特性都可以继续嵌套目录、特性、用例。
+也就是说，下面这种结构应视为非法：
 
-```yaml
+```text
+execution_version
+└─ case_container
+   ├─ test_scene
+   └─ directory   <- 非法
+```
+
+## 10. 结构例子五：目录和特性的互转与递归
+
+你确认了“特性和目录等价，可以互相改 type”，那当前可理解成：
+
+- 两者结构能力一致
+- 两者都可以继续嵌套目录、特性、用例
+- 区别主要体现在业务语义和展示文案
+
+```text
 case_container
-├─ directory(dir-A)
-│  ├─ directory(dir-B)
-│  │  └─ baseline_case(case-1)
-│  └─ feature(feature-A)
-│     └─ baseline_case(case-2)
-└─ feature(feature-B)
-   ├─ feature(feature-C)
-   └─ directory(dir-C)
-      └─ baseline_case(case-3)
+├─ directory(目录A)
+│  ├─ feature(特性B)
+│  │  └─ baseline_case(用例1)
+│  └─ directory(目录C)
+│     └─ baseline_case(用例2)
+└─ feature(特性A)
+   ├─ feature(特性C)
+   ├─ directory(目录D)
+   └─ baseline_case(用例3)
 ```
 
 ### 这个例子的约束
 
-- `directory` 可嵌套 `directory`
-- `directory` 可嵌套 `feature`
-- `feature` 可嵌套 `feature`
-- `feature` 可嵌套 `directory`
-- 最底层用例类型由最近版本上下文决定，不由目录或特性本身决定
+- `directory` 可挂 `directory`
+- `directory` 可挂 `feature`
+- `feature` 可挂 `directory`
+- `feature` 可挂 `feature`
+- 两者都可挂用例
+- 两者允许互改 `type`
 
-## 10. 动态字段的大致落位
+## 11. 我目前理解的硬约束
 
-你说每个节点有 100+ 字段并且还会继续扩，这里建议不要都平铺在根节点。
+下面这些我建议后续直接变成程序规则。
 
-建议结构：
+### 11.1 顶层与中层关系
 
-```json
-{
-  "longIdPath": "space-1/product-1/baseline-1",
-  "shortId": "BL-1",
-  "currentLevelId": "baseline-1",
-  "type": "baseline_version",
-  "name": "基线版本A",
-  "number": "BL-001",
-  "extFields": {
-    "owner": "u-1001",
-    "priority": "P1",
-    "milestone": "M3",
-    "custom_001": "xxx",
-    "custom_002": 123,
-    "custom_003": true
-  }
-}
+```text
+space -> product | baseline_version | container_version
+product -> baseline_version | container_version
+baseline_version -> case_container(唯一)
+container_version -> case_container(唯一)
+execution_version -> case_container(唯一)
 ```
 
-## 11. 我建议先固化的硬约束
+### 11.2 基线侧关系
 
-这些约束建议后面直接进入规则引擎或后端校验：
+```text
+baseline_version
+└─ case_container
+   ├─ directory
+   ├─ feature
+   ├─ baseline_case
+   └─ execution_version
+```
 
-### 11.1 结构约束
+```text
+container_version
+└─ case_container
+   ├─ directory
+   ├─ feature
+   ├─ baseline_case
+   └─ execution_version
+```
 
-1. `space -> product | container_version | baseline_version`
-2. `product -> container_version | baseline_version`
-3. `baseline_version -> case_container(唯一) | execution_version(*)`
-4. `container_version -> case_container(?) | execution_version(*)`
-5. `case_container -> directory | feature`
-6. `execution_version -> container_version XOR test_scene+`
-7. `directory | feature -> directory | feature | case`
+### 11.3 执行侧关系
 
-### 11.2 语义约束
+```text
+execution_version
+└─ case_container
+   ├─ directory / feature / execution_case
+   └─ test_scene
+      ├─ directory
+      ├─ feature
+      └─ execution_case
+```
 
-1. `longIdPath` 最后一段必须等于 `currentLevelId`
-2. `shortId` 不能包含 `/`
-3. 每个节点都必须有 `type/name/number`
-4. 基线上下文中的用例必须是 `baseline_case`
-5. 执行上下文中的用例必须是 `execution_case`
-6. 场景下直接出现的目录必须记录 `meta.convertedFrom = "feature"`
+但这里有一个强约束：
 
-### 11.3 模式约束
+- `case_container` 下如果已经出现 `test_scene`
+- 就不能再在 `case_container` 下直接建 `directory / feature / execution_case`
 
-1. `execution_version` 只能处于一种模式
-2. `single_container` 模式下只能有一个 `container_version`
-3. `multi_scene` 模式下只能有一个或多个 `test_scene`
-4. 两种模式不能混用
+### 11.4 场景约束
 
-## 12. 当前最需要你确认的点
+- `test_scene` 下不能再挂 `case_container`
+- `test_scene` 下可以挂：
+  - `directory`
+  - `feature`
+  - `execution_case`
 
-这几个点你一确认，后面模型就能基本定下来：
+### 11.5 目录/特性约束
 
-1. `测试版本` 是否就是 `执行版本`
-2. `测试项` 是否就是 `特性`
-3. `container_version` 下如果直接挂 `case_container`，其中的用例最终属于哪类
-4. `case_container` 是否只允许出现在 `container_version` / `baseline_version` 下面，还是 `execution_version` 或 `test_scene` 下面也可能出现
-5. `test_scene` 下是否真的允许“最终形态”出现直接子 `directory`
-6. `baseline_version` 下“唯一用例容器”是强约束，还是当前业务习惯
-7. `execution_version` 切模式时，旧子树是禁止保留、自动迁移，还是允许脏状态存在
+- `directory` 和 `feature` 等价
+- 两者可以互改 `type`
+- 两者都可继续挂：
+  - `directory`
+  - `feature`
+  - 用例
 
-## 13. 如果你确认无误，我下一步建议
+## 12. 仍建议你最后再确认的点
 
-如果这份树模型你认可，我建议下一步继续补这三块：
+这几个点我已经尽量按你的反馈收敛了，但最好你再拍一下：
+
+1. `baseline_version` / `container_version` 的 `case_container` 下，是否允许直接挂 `execution_version`
+2. `baseline_version` / `container_version` 分支下，直接挂的用例是否统一都算 `baseline_case`
+3. `execution_version` 的两种组织形态是否都存在：
+   - 容器直挂内容
+   - 容器挂场景
+4. 如果一个 `execution_version` 已经在“容器直挂内容”形态下创建了内容，是否明确禁止后续再加 `test_scene`
+5. `feature` 和 `directory` 互转时，是否只改 `type`，其余 `id/path` 保持不变
+
+## 13. 下一步建议
+
+如果这版结构树你确认了，我建议下一步继续补这三份内容：
 
 1. 父子关系矩阵表
-2. 各类型节点详情字段分组模型
+2. 右侧详情字段分组模型
 3. 接口入参与返回结构草案
