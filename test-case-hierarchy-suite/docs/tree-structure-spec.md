@@ -66,6 +66,24 @@
 | `node.ext` | `field.ext` | 扩展字段容器 | 是 | 100+ 动态字段挂载位 |
 | `node.children` | `field.children` | 子节点集合 | 是 | 树下级 |
 
+## 4.1 节点类型实际映射预留表
+
+这张表专门留给你填写“节点类型字段本身”在你系统里的真实落位。
+
+| 类型别名 | 当前建议类型值 | 你的实际类型值 | 类型字段实际字段 ID | 类型字段实际字段名 | 类型显示名实际值 | 备注 |
+| --- | --- | --- | --- | --- | --- | --- |
+| `space` | `space` |  |  |  |  | 空间节点 |
+| `product` | `product` |  |  |  |  | 产品节点 |
+| `baseline_version` | `baseline_version` |  |  |  |  | 基线版本节点 |
+| `container_version` | `container_version` |  |  |  |  | 容器版本节点 |
+| `execution_version` | `execution_version` |  |  |  |  | 执行版本节点 |
+| `case_container` | `case_container` |  |  |  |  | 用例容器节点 |
+| `test_scene` | `test_scene` |  |  |  |  | 场景节点 |
+| `directory` | `directory` |  |  |  |  | 目录节点 |
+| `feature` | `feature` |  |  |  |  | 特性节点 |
+| `baseline_case` | `baseline_case` |  |  |  |  | 基线用例节点 |
+| `execution_case` | `execution_case` |  |  |  |  | 执行用例节点 |
+
 ## 5. 元信息字段别名
 
 这层用于表达结构控制信息。
