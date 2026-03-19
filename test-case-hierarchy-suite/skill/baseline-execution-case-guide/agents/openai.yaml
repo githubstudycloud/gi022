@@ -1,0 +1,4 @@
+﻿interface:
+  display_name: "基线/执行用例向导"
+  short_description: "Resolve case context, legality, query scope, and create flow."
+  default_prompt: "Use $baseline-execution-case-guide to answer baseline_case and execution_case query, validation, or creation questions in the test hierarchy."

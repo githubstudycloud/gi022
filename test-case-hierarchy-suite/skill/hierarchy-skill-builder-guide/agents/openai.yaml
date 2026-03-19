@@ -1,0 +1,4 @@
+﻿interface:
+  display_name: "层级 Skill 构建向导"
+  short_description: "Turn hierarchy docs and examples into a focused reusable skill."
+  default_prompt: "Use $hierarchy-skill-builder-guide to build or refactor a hierarchy-domain skill from local docs, examples, and existing skills."
