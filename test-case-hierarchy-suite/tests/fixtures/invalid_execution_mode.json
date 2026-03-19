@@ -1,0 +1,60 @@
+{
+  "longIdPath": "space-1",
+  "shortId": "SP-1",
+  "currentLevelId": "space-1",
+  "type": "space",
+  "name": "主空间",
+  "number": "SPACE-001",
+  "children": [
+    {
+      "longIdPath": "space-1/baseline-1",
+      "shortId": "BL-1",
+      "currentLevelId": "baseline-1",
+      "type": "baseline_version",
+      "name": "基线版本A",
+      "number": "BL-001",
+      "children": [
+        {
+          "longIdPath": "space-1/baseline-1/container-1",
+          "shortId": "CC-1",
+          "currentLevelId": "container-1",
+          "type": "case_container",
+          "name": "基线用例容器",
+          "number": "CC-001",
+          "children": []
+        },
+        {
+          "longIdPath": "space-1/baseline-1/exec-1",
+          "shortId": "EV-1",
+          "currentLevelId": "exec-1",
+          "type": "execution_version",
+          "name": "执行版本A",
+          "number": "EXEC-001",
+          "meta": {
+            "executionMode": "single_container"
+          },
+          "children": [
+            {
+              "longIdPath": "space-1/baseline-1/exec-1/container-version-1",
+              "shortId": "CV-1",
+              "currentLevelId": "container-version-1",
+              "type": "container_version",
+              "name": "容器版本A",
+              "number": "CV-001",
+              "children": []
+            },
+            {
+              "longIdPath": "space-1/baseline-1/exec-1/scene-1",
+              "shortId": "SC-1",
+              "currentLevelId": "scene-1",
+              "type": "test_scene",
+              "name": "非法场景",
+              "number": "SCENE-001",
+              "children": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

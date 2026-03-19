@@ -1,0 +1,4 @@
+interface:
+  display_name: "测试树规则向导"
+  short_description: "Guide Chinese test hierarchy tree design and node rules."
+  default_prompt: "Use $test-case-hierarchy-guide to design a Chinese test hierarchy tree with node rules."

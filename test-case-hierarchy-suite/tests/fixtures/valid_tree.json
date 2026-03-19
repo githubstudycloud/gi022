@@ -1,0 +1,121 @@
+{
+  "longIdPath": "space-1",
+  "shortId": "SP-1",
+  "currentLevelId": "space-1",
+  "type": "space",
+  "name": "主空间",
+  "number": "SPACE-001",
+  "children": [
+    {
+      "longIdPath": "space-1/product-1",
+      "shortId": "PD-1",
+      "currentLevelId": "product-1",
+      "type": "product",
+      "name": "产品A",
+      "number": "PROD-001",
+      "children": [
+        {
+          "longIdPath": "space-1/product-1/baseline-1",
+          "shortId": "BL-1",
+          "currentLevelId": "baseline-1",
+          "type": "baseline_version",
+          "name": "基线版本A",
+          "number": "BL-001",
+          "children": [
+            {
+              "longIdPath": "space-1/product-1/baseline-1/container-1",
+              "shortId": "CC-1",
+              "currentLevelId": "container-1",
+              "type": "case_container",
+              "name": "基线用例容器",
+              "number": "CC-001",
+              "children": [
+                {
+                  "longIdPath": "space-1/product-1/baseline-1/container-1/dir-1",
+                  "shortId": "DIR-1",
+                  "currentLevelId": "dir-1",
+                  "type": "directory",
+                  "name": "一级目录",
+                  "number": "DIR-001",
+                  "children": [
+                    {
+                      "longIdPath": "space-1/product-1/baseline-1/container-1/dir-1/feature-1",
+                      "shortId": "FT-1",
+                      "currentLevelId": "feature-1",
+                      "type": "feature",
+                      "name": "登录特性",
+                      "number": "FEAT-001",
+                      "children": [
+                        {
+                          "longIdPath": "space-1/product-1/baseline-1/container-1/dir-1/feature-1/case-1",
+                          "shortId": "BC-1",
+                          "currentLevelId": "case-1",
+                          "type": "baseline_case",
+                          "name": "基线用例1",
+                          "number": "CASE-001",
+                          "children": []
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "longIdPath": "space-1/product-1/baseline-1/exec-1",
+              "shortId": "EV-1",
+              "currentLevelId": "exec-1",
+              "type": "execution_version",
+              "name": "执行版本A",
+              "number": "EXEC-001",
+              "meta": {
+                "executionMode": "multi_scene"
+              },
+              "children": [
+                {
+                  "longIdPath": "space-1/product-1/baseline-1/exec-1/scene-1",
+                  "shortId": "SC-1",
+                  "currentLevelId": "scene-1",
+                  "type": "test_scene",
+                  "name": "回归场景",
+                  "number": "SCENE-001",
+                  "children": [
+                    {
+                      "longIdPath": "space-1/product-1/baseline-1/exec-1/scene-1/feature-2",
+                      "shortId": "FT-2",
+                      "currentLevelId": "feature-2",
+                      "type": "feature",
+                      "name": "支付特性",
+                      "number": "FEAT-002",
+                      "children": [
+                        {
+                          "longIdPath": "space-1/product-1/baseline-1/exec-1/scene-1/feature-2/dir-2",
+                          "shortId": "DIR-2",
+                          "currentLevelId": "dir-2",
+                          "type": "directory",
+                          "name": "支付目录",
+                          "number": "DIR-002",
+                          "children": [
+                            {
+                              "longIdPath": "space-1/product-1/baseline-1/exec-1/scene-1/feature-2/dir-2/case-2",
+                              "shortId": "EC-1",
+                              "currentLevelId": "case-2",
+                              "type": "execution_case",
+                              "name": "执行用例1",
+                              "number": "CASE-002",
+                              "children": []
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
