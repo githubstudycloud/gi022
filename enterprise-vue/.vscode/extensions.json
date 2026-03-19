@@ -1,0 +1,16 @@
+{
+  "recommendations": [
+    "Vue.volar",
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "bradlc.vscode-tailwindcss",
+    "antfu.unocss",
+    "streetsidesoftware.code-spell-checker",
+    "usernamehw.errorlens",
+    "christian-kohler.path-intellisense",
+    "mikestead.dotenv",
+    "EditorConfig.EditorConfig",
+    "PKief.material-icon-theme",
+    "eamodio.gitlens"
+  ]
+}

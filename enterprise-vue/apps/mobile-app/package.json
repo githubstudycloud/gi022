@@ -1,0 +1,31 @@
+{
+  "name": "@enterprise/mobile-app",
+  "version": "1.0.0",
+  "description": "移动端 H5 应用",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "lint": "eslint src --ext .ts,.vue",
+    "typecheck": "vue-tsc --noEmit",
+    "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "@enterprise/api": "workspace:*",
+    "@enterprise/stores": "workspace:*",
+    "@enterprise/types": "workspace:*",
+    "@enterprise/utils": "workspace:*",
+    "pinia": "^2.3.0",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.0"
+  },
+  "devDependencies": {
+    "@enterprise/config": "workspace:*",
+    "@vitejs/plugin-vue": "^5.2.1",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.5",
+    "vue-tsc": "^2.2.0"
+  }
+}

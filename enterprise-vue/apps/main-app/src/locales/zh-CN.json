@@ -1,0 +1,27 @@
+{
+  "common": {
+    "confirm": "确认",
+    "cancel": "取消",
+    "save": "保存",
+    "delete": "删除",
+    "edit": "编辑",
+    "search": "搜索",
+    "reset": "重置",
+    "loading": "加载中...",
+    "noData": "暂无数据",
+    "total": "共 {total} 条"
+  },
+  "auth": {
+    "login": "登录",
+    "logout": "退出登录",
+    "username": "用户名",
+    "password": "密码",
+    "rememberMe": "记住我",
+    "forgotPassword": "忘记密码？",
+    "loginFailed": "登录失败，请检查用户名和密码"
+  },
+  "nav": {
+    "home": "首页",
+    "about": "关于"
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "name": "enterprise-vue",
+  "version": "1.0.0",
+  "private": true,
+  "description": "企业级 Vue 多项目 Monorepo 框架",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "packageManager": "pnpm@9.14.4",
+  "scripts": {
+    "dev": "turbo run dev",
+    "dev:main": "turbo run dev --filter=@enterprise/main-app",
+    "dev:admin": "turbo run dev --filter=@enterprise/admin-app",
+    "dev:mobile": "turbo run dev --filter=@enterprise/mobile-app",
+    "build": "turbo run build",
+    "build:main": "turbo run build --filter=@enterprise/main-app",
+    "build:admin": "turbo run build --filter=@enterprise/admin-app",
+    "build:mobile": "turbo run build --filter=@enterprise/mobile-app",
+    "test": "turbo run test",
+    "test:unit": "turbo run test:unit",
+    "test:e2e": "turbo run test:e2e",
+    "lint": "turbo run lint",
+    "lint:fix": "turbo run lint:fix",
+    "typecheck": "turbo run typecheck",
+    "clean": "turbo run clean && rimraf node_modules",
+    "format": "prettier --write \"**/*.{ts,tsx,vue,js,jsx,json,md,css,scss}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,vue,js,jsx,json,md,css,scss}\"",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release": "turbo run build && changeset publish",
+    "prepare": "husky",
+    "gen": "node scripts/generator/index.mjs",
+    "analyze": "turbo run analyze"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.27.10",
+    "@commitlint/cli": "^19.6.1",
+    "@commitlint/config-conventional": "^19.6.0",
+    "@eslint/js": "^9.17.0",
+    "@typescript-eslint/eslint-plugin": "^8.19.0",
+    "@typescript-eslint/parser": "^8.19.0",
+    "@vue/eslint-config-prettier": "^10.1.0",
+    "@vue/eslint-config-typescript": "^14.2.0",
+    "eslint": "^9.17.0",
+    "eslint-plugin-vue": "^9.32.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.3.0",
+    "prettier": "^3.4.2",
+    "rimraf": "^6.0.1",
+    "turbo": "^2.3.3",
+    "typescript": "^5.7.2"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,vue,js,jsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,css,scss,yaml,yml}": [
+      "prettier --write"
+    ]
+  }
+}

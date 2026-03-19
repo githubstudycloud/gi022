@@ -1,0 +1,46 @@
+version: '3.9'
+
+services:
+  main-app:
+    build:
+      context: .
+      dockerfile: apps/main-app/Dockerfile
+    ports:
+      - '8080:80'
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'wget', '-q', '--spider', 'http://localhost/']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.main-app.rule=Host(`enterprise.example.com`)"
+
+  admin-app:
+    build:
+      context: .
+      dockerfile: apps/admin-app/Dockerfile
+    ports:
+      - '8081:80'
+    restart: unless-stopped
+
+  mobile-app:
+    build:
+      context: .
+      dockerfile: apps/mobile-app/Dockerfile
+    ports:
+      - '8082:80'
+    restart: unless-stopped
+
+  # 本地开发用 Mock 后端（可选）
+  mock-server:
+    image: mockoon/cli:latest
+    profiles: ['dev']
+    ports:
+      - '3333:3000'
+    volumes:
+      - ./scripts/mock/mockoon.json:/data/mockoon.json
+    command: ['--data', '/data/mockoon.json', '--port', '3000']

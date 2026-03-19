@@ -1,0 +1,15 @@
+go 1.22
+
+use (
+	./libs/config
+	./libs/logger
+	./libs/db
+	./libs/cache
+	./libs/errors
+	./libs/tracing
+	./libs/middleware
+	./libs/eventbus
+	./apps/api-gateway
+	./apps/user-service
+	./apps/order-service
+)

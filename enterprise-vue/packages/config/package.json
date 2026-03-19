@@ -1,0 +1,26 @@
+{
+  "name": "@enterprise/config",
+  "version": "1.0.0",
+  "description": "企业级共享配置（Vite、TypeScript 基础配置）",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./vite": "./src/vite.ts",
+    "./vitest": "./src/vitest.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "@vitejs/plugin-vue": "^5.2.1",
+    "@vitejs/plugin-vue-jsx": "^4.1.1",
+    "vite": "^6.0.5",
+    "vite-plugin-mock": "^3.0.2",
+    "vite-plugin-checker": "^0.8.0",
+    "rollup-plugin-visualizer": "^5.12.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  }
+}

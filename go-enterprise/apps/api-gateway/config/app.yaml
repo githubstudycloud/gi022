@@ -1,0 +1,28 @@
+app:
+  name: api-gateway
+  version: "1.0.0"
+  env: dev
+
+http:
+  host: 0.0.0.0
+  port: 8000
+
+rate_limit_rps: 1000
+rate_limit_burst: 2000
+
+routes:
+  - prefix: /api/v1/users
+    upstream: http://user-service:8080
+  - prefix: /api/v1/orders
+    upstream: http://order-service:8080
+
+log:
+  level: info
+  format: json
+  output: stdout
+
+tracing:
+  enabled: false
+  endpoint: "http://jaeger:4318"
+  service_name: api-gateway
+  sample_rate: 0.05

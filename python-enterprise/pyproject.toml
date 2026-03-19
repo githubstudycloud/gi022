@@ -1,0 +1,54 @@
+[tool.uv.workspace]
+members = [
+    "apps/user-service",
+    "apps/api-gateway",
+    "apps/worker-service",
+    "apps/data-service",
+    "libs/core",
+    "libs/config",
+    "libs/database",
+    "libs/cache",
+    "libs/messaging",
+    "libs/search",
+    "libs/auth",
+    "libs/observability",
+    "libs/testing",
+]
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=8.3",
+    "pytest-asyncio>=0.24",
+    "pytest-cov>=6.0",
+    "ruff>=0.8",
+    "mypy>=1.13",
+    "pre-commit>=4.0",
+    "httpx>=0.28",
+    "factory-boy>=3.3",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "UP", "B", "SIM", "ANN"]
+ignore = ["ANN101", "ANN102"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["ANN", "S"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+ignore_missing_imports = true
+plugins = ["pydantic.mypy", "sqlalchemy.ext.mypy.plugin"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+addopts = "--cov --cov-report=term-missing --cov-fail-under=80"
+
+[tool.coverage.run]
+source = ["src"]
+omit = ["*/tests/*", "*/migrations/*"]

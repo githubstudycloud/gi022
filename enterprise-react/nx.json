@@ -1,0 +1,89 @@
+{
+  "$schema": "./node_modules/nx/schemas/nx-schema.json",
+  "nxCloudId": "",
+  "defaultBase": "main",
+  "namedInputs": {
+    "default": ["{projectRoot}/**/*", "sharedGlobals"],
+    "production": [
+      "default",
+      "!{projectRoot}/**/*.spec.ts",
+      "!{projectRoot}/**/*.test.ts",
+      "!{projectRoot}/**/*.stories.tsx",
+      "!{projectRoot}/src/test-utils/**/*",
+      "!{projectRoot}/.storybook/**/*"
+    ],
+    "sharedGlobals": [
+      "{workspaceRoot}/configs/**/*",
+      "{workspaceRoot}/tsconfig.base.json"
+    ]
+  },
+  "targetDefaults": {
+    "build": {
+      "dependsOn": ["^build"],
+      "inputs": ["production", "^production"],
+      "cache": true,
+      "outputs": ["{projectRoot}/dist"]
+    },
+    "test": {
+      "inputs": ["default", "^production"],
+      "cache": true,
+      "outputs": ["{projectRoot}/coverage"]
+    },
+    "lint": {
+      "inputs": ["default", "{workspaceRoot}/.eslintignore"],
+      "cache": true
+    },
+    "type-check": {
+      "inputs": ["default", "^production"],
+      "cache": true
+    },
+    "storybook": {
+      "cache": false
+    },
+    "build-storybook": {
+      "inputs": ["default", "^production"],
+      "cache": true,
+      "outputs": ["{projectRoot}/storybook-static"]
+    }
+  },
+  "plugins": [
+    {
+      "plugin": "@nx/vite/plugin",
+      "options": {
+        "buildTargetName": "build",
+        "testTargetName": "test",
+        "serveTargetName": "dev",
+        "previewTargetName": "preview",
+        "serveStaticTargetName": "serve-static"
+      }
+    },
+    {
+      "plugin": "@nx/eslint/plugin",
+      "options": {
+        "targetName": "lint"
+      }
+    },
+    {
+      "plugin": "@nx/storybook/plugin",
+      "options": {
+        "buildStorybookTargetName": "build-storybook",
+        "serveStorybookTargetName": "storybook",
+        "staticStorybookTargetName": "static-storybook"
+      }
+    }
+  ],
+  "generators": {
+    "@nx/react": {
+      "application": {
+        "style": "css",
+        "linter": "eslint",
+        "bundler": "vite"
+      },
+      "library": {
+        "style": "css",
+        "linter": "eslint",
+        "unitTestRunner": "vitest"
+      }
+    }
+  }
+}

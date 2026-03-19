@@ -1,0 +1,173 @@
+default:
+  image: python:3.12-slim
+  before_script:
+    - pip install uv
+    - uv sync --all-packages
+
+variables:
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: "/certs"
+  REGISTRY: $CI_REGISTRY
+  IMAGE_TAG: $CI_COMMIT_SHORT_SHA
+
+stages:
+  - validate
+  - test
+  - security
+  - build
+  - deploy-staging
+  - deploy-production
+
+# ─── Validate ────────────────────────────────────────────────────────────────
+lint:
+  stage: validate
+  script:
+    - uv run ruff check .
+    - uv run ruff format --check .
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == "main"
+
+typecheck:
+  stage: validate
+  script:
+    - uv run mypy apps/ libs/
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == "main"
+
+# ─── Test ────────────────────────────────────────────────────────────────────
+unit-tests:
+  stage: test
+  script:
+    - uv run pytest -m unit --cov --cov-report=xml
+  coverage: '/TOTAL.*\s+(\d+%)$/'
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH =~ /^(main|develop)$/
+
+integration-tests:
+  stage: test
+  services:
+    - name: postgres:16-alpine
+      alias: postgres
+      variables:
+        POSTGRES_USER: pe
+        POSTGRES_PASSWORD: pe
+        POSTGRES_DB: test_db
+    - name: redis:7-alpine
+      alias: redis
+  variables:
+    DATABASE_URL: "postgresql+asyncpg://pe:pe@postgres:5432/test_db"
+    REDIS_URL: "redis://redis:6379/0"
+  script:
+    - uv run pytest -m integration
+  rules:
+    - if: $CI_COMMIT_BRANCH =~ /^(main|develop)$/
+
+# ─── Security ────────────────────────────────────────────────────────────────
+sast:
+  stage: security
+  image: python:3.12-slim
+  script:
+    - pip install bandit safety
+    - bandit -r apps/ libs/ -ll -f json -o bandit-report.json || true
+    - safety check --json > safety-report.json || true
+  artifacts:
+    paths: [bandit-report.json, safety-report.json]
+    when: always
+  rules:
+    - if: $CI_COMMIT_BRANCH =~ /^(main|develop)$/
+
+secret-detection:
+  stage: security
+  image: python:3.12-slim
+  script:
+    - pip install detect-secrets
+    - detect-secrets scan --baseline .secrets.baseline
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+# ─── Build ───────────────────────────────────────────────────────────────────
+.build-template: &build-template
+  stage: build
+  image: docker:24
+  services: [docker:24-dind]
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+
+build-user-service:
+  <<: *build-template
+  script:
+    - docker build -t $REGISTRY/user-service:$IMAGE_TAG -f apps/user-service/Dockerfile .
+    - docker push $REGISTRY/user-service:$IMAGE_TAG
+  rules:
+    - if: $CI_COMMIT_BRANCH =~ /^(main|develop)$/
+      changes: ["apps/user-service/**", "libs/**"]
+
+build-api-gateway:
+  <<: *build-template
+  script:
+    - docker build -t $REGISTRY/api-gateway:$IMAGE_TAG -f apps/api-gateway/Dockerfile .
+    - docker push $REGISTRY/api-gateway:$IMAGE_TAG
+  rules:
+    - if: $CI_COMMIT_BRANCH =~ /^(main|develop)$/
+      changes: ["apps/api-gateway/**", "libs/**"]
+
+build-worker-service:
+  <<: *build-template
+  script:
+    - docker build -t $REGISTRY/worker-service:$IMAGE_TAG -f apps/worker-service/Dockerfile .
+    - docker push $REGISTRY/worker-service:$IMAGE_TAG
+  rules:
+    - if: $CI_COMMIT_BRANCH =~ /^(main|develop)$/
+      changes: ["apps/worker-service/**", "libs/**"]
+
+build-data-service:
+  <<: *build-template
+  script:
+    - docker build -t $REGISTRY/data-service:$IMAGE_TAG -f apps/data-service/Dockerfile .
+    - docker push $REGISTRY/data-service:$IMAGE_TAG
+  rules:
+    - if: $CI_COMMIT_BRANCH =~ /^(main|develop)$/
+      changes: ["apps/data-service/**", "libs/**"]
+
+# ─── Deploy Staging ──────────────────────────────────────────────────────────
+deploy-staging:
+  stage: deploy-staging
+  image: bitnami/kubectl:latest
+  environment:
+    name: staging
+    url: https://staging.python-enterprise.internal
+  script:
+    - kubectl config use-context $K8S_STAGING_CONTEXT
+    - kubectl set image deployment/user-service  user-service=$REGISTRY/user-service:$IMAGE_TAG  -n staging
+    - kubectl set image deployment/api-gateway   api-gateway=$REGISTRY/api-gateway:$IMAGE_TAG   -n staging
+    - kubectl set image deployment/worker-service worker-service=$REGISTRY/worker-service:$IMAGE_TAG -n staging
+    - kubectl set image deployment/data-service  data-service=$REGISTRY/data-service:$IMAGE_TAG  -n staging
+    - kubectl rollout status deployment -n staging --timeout=5m
+  rules:
+    - if: $CI_COMMIT_BRANCH == "develop"
+
+# ─── Deploy Production ────────────────────────────────────────────────────────
+deploy-production:
+  stage: deploy-production
+  image: bitnami/kubectl:latest
+  environment:
+    name: production
+    url: https://api.python-enterprise.com
+  script:
+    - kubectl config use-context $K8S_PROD_CONTEXT
+    - kubectl set image deployment/user-service  user-service=$REGISTRY/user-service:$IMAGE_TAG  -n production
+    - kubectl set image deployment/api-gateway   api-gateway=$REGISTRY/api-gateway:$IMAGE_TAG   -n production
+    - kubectl set image deployment/worker-service worker-service=$REGISTRY/worker-service:$IMAGE_TAG -n production
+    - kubectl set image deployment/data-service  data-service=$REGISTRY/data-service:$IMAGE_TAG  -n production
+    - kubectl rollout status deployment -n production --timeout=10m
+  when: manual
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"

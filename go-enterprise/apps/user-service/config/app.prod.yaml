@@ -1,0 +1,15 @@
+app:
+  env: prod
+
+http:
+  read_timeout_sec: 10
+  write_timeout_sec: 10
+
+log:
+  level: info
+  format: json
+  output: stdout
+
+tracing:
+  enabled: true
+  sample_rate: 0.05

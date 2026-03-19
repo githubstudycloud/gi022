@@ -1,0 +1,43 @@
+{
+  "name": "enterprise-react",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Enterprise React Monorepo — Nx + pnpm + Vite",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "scripts": {
+    "dev:web": "nx run web:dev",
+    "dev:admin": "nx run admin:dev",
+    "build": "nx run-many --target=build --all",
+    "build:affected": "nx affected --target=build",
+    "test": "nx run-many --target=test --all",
+    "test:affected": "nx affected --target=test",
+    "lint": "nx run-many --target=lint --all",
+    "type-check": "nx run-many --target=type-check --all",
+    "storybook": "nx run ui:storybook",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,css}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,css}\"",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@nx/js": "^19.0.0",
+    "@nx/react": "^19.0.0",
+    "@nx/vite": "^19.0.0",
+    "@nx/storybook": "^19.0.0",
+    "@nx/eslint": "^19.0.0",
+    "nx": "^19.0.0",
+    "typescript": "^5.4.0",
+    "prettier": "^3.2.0",
+    "husky": "^9.0.0",
+    "lint-staged": "^15.0.0",
+    "commitlint": "^19.0.0",
+    "@commitlint/cli": "^19.0.0",
+    "@commitlint/config-conventional": "^19.0.0"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": ["eslint --fix", "prettier --write"],
+    "*.{json,md,css,yml}": ["prettier --write"]
+  }
+}

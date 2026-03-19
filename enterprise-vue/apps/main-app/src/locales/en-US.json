@@ -1,0 +1,27 @@
+{
+  "common": {
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "search": "Search",
+    "reset": "Reset",
+    "loading": "Loading...",
+    "noData": "No Data",
+    "total": "Total {total}"
+  },
+  "auth": {
+    "login": "Login",
+    "logout": "Logout",
+    "username": "Username",
+    "password": "Password",
+    "rememberMe": "Remember me",
+    "forgotPassword": "Forgot password?",
+    "loginFailed": "Login failed, please check your credentials"
+  },
+  "nav": {
+    "home": "Home",
+    "about": "About"
+  }
+}

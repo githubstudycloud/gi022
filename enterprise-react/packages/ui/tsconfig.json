@@ -1,0 +1,9 @@
+{
+  "extends": "@enterprise/tsconfig/react.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src"
+  },
+  "include": ["src"],
+  "exclude": ["dist", "node_modules", "**/*.stories.tsx"]
+}

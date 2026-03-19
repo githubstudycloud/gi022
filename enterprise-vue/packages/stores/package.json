@@ -1,0 +1,33 @@
+{
+  "name": "@enterprise/stores",
+  "version": "1.0.0",
+  "description": "企业级共享 Pinia 状态管理",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "vite build",
+    "typecheck": "tsc --noEmit",
+    "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "@enterprise/api": "workspace:*",
+    "@enterprise/types": "workspace:*",
+    "@enterprise/utils": "workspace:*",
+    "pinia": "^2.3.0",
+    "vue": "^3.5.13"
+  },
+  "devDependencies": {
+    "rimraf": "^6.0.1",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.5"
+  },
+  "peerDependencies": {
+    "pinia": "^2.3.0",
+    "vue": "^3.5.13"
+  }
+}

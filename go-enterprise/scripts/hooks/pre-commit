@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# pre-commit hook：提交前自动检查
+set -e
+
+echo "▶ Running pre-commit checks..."
+
+# 1. 代码格式检查
+if command -v goimports &> /dev/null; then
+  UNFORMATTED=$(find . -name "*.go" -not -path "*/vendor/*" | xargs goimports -l 2>/dev/null)
+  if [ -n "$UNFORMATTED" ]; then
+    echo "✗ 以下文件格式不规范（运行 make fmt 修复）："
+    echo "$UNFORMATTED"
+    exit 1
+  fi
+fi
+
+# 2. go vet
+echo "  go vet..."
+for dir in libs/*/; do
+  (cd "$dir" && go vet ./...) || exit 1
+done
+for dir in apps/*/; do
+  (cd "$dir" && go vet ./...) || exit 1
+done
+
+# 3. 运行测试（只测试有变更的模块）
+CHANGED_DIRS=$(git diff --cached --name-only | awk -F'/' '{print $1"/"$2}' | sort -u)
+for dir in $CHANGED_DIRS; do
+  if [ -f "$dir/go.mod" ]; then
+    echo "  Testing $dir..."
+    (cd "$dir" && go test ./... -count=1) || exit 1
+  fi
+done
+
+echo "✓ Pre-commit checks passed"

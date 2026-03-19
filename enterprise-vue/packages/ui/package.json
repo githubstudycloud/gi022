@@ -1,0 +1,34 @@
+{
+  "name": "@enterprise/ui",
+  "version": "1.0.0",
+  "description": "企业级 Vue 共享 UI 组件库",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./dist/index.js"
+    },
+    "./styles": "./src/styles/index.css"
+  },
+  "scripts": {
+    "dev": "vite build --watch",
+    "build": "vite build",
+    "typecheck": "vue-tsc --noEmit",
+    "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "@enterprise/types": "workspace:*",
+    "@enterprise/utils": "workspace:*",
+    "vue": "^3.5.13"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.2.1",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.5",
+    "vue-tsc": "^2.2.0"
+  },
+  "peerDependencies": {
+    "vue": "^3.5.13"
+  }
+}

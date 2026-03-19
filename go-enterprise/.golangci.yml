@@ -1,0 +1,46 @@
+run:
+  timeout: 5m
+  go: "1.22"
+
+linters:
+  enable:
+    - errcheck
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    - gofmt
+    - goimports
+    - revive
+    - gosec
+    - misspell
+    - unconvert
+    - unparam
+    - exhaustive
+    - noctx
+    - bodyclose
+    - sqlclosecheck
+    - rowserrcheck
+    - contextcheck
+
+linters-settings:
+  goimports:
+    local-prefixes: github.com/your-org/go-enterprise
+  revive:
+    rules:
+      - name: exported
+        severity: warning
+      - name: unused-parameter
+        severity: warning
+  gosec:
+    excludes:
+      - G204  # subprocess launched with variable
+
+issues:
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - gosec
+        - unparam
+  max-same-issues: 5

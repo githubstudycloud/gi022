@@ -1,0 +1,42 @@
+{
+  "name": "@enterprise/main-app",
+  "version": "1.0.0",
+  "description": "主用户端应用",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:unit": "vitest run",
+    "test:e2e": "playwright test",
+    "lint": "eslint src --ext .ts,.vue",
+    "lint:fix": "eslint src --ext .ts,.vue --fix",
+    "typecheck": "vue-tsc --noEmit",
+    "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "@enterprise/api": "workspace:*",
+    "@enterprise/stores": "workspace:*",
+    "@enterprise/types": "workspace:*",
+    "@enterprise/ui": "workspace:*",
+    "@enterprise/utils": "workspace:*",
+    "pinia": "^2.3.0",
+    "pinia-plugin-persistedstate": "^4.2.0",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.0",
+    "vue-i18n": "^10.0.5"
+  },
+  "devDependencies": {
+    "@enterprise/config": "workspace:*",
+    "@playwright/test": "^1.49.1",
+    "@vitejs/plugin-vue": "^5.2.1",
+    "@vue/test-utils": "^2.4.6",
+    "jsdom": "^25.0.1",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.5",
+    "vitest": "^2.1.8",
+    "vue-tsc": "^2.2.0"
+  }
+}
