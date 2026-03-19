@@ -1,0 +1,4 @@
+interface:
+  display_name: "左树右详情 CRUD 双语向导"
+  short_description: "Support Chinese/English tree-detail CRUD templates."
+  default_prompt: "Use $tree-detail-crud-bilingual to design a Chinese/English left-tree right-detail CRUD flow."

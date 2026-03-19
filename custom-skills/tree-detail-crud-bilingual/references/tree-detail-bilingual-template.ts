@@ -1,0 +1,275 @@
+export interface LocalizedText {
+  zhCN: string;
+  enUS: string;
+}
+
+export type DetailMode =
+  | "current-node-detail"
+  | "child-list"
+  | "mixed"
+  | "summary";
+
+export type TreeLoadMode = "full" | "lazy" | "root-filtered";
+
+export type DeletePolicy =
+  | "block-when-children-exist"
+  | "cascade-delete-descendants"
+  | "soft-delete"
+  | "unbind-related-records";
+
+export interface TreeFieldMap {
+  nodeIdField: string;
+  parentIdField: string;
+  nodeCodeField?: string;
+  nodeNameField: string;
+  nodeNameI18nField?: string;
+  nodeSortField?: string;
+  rootParentValue?: string | number | null;
+  statusField?: string;
+  pathField?: string;
+  leafFlagField?: string;
+}
+
+export interface TreeQueryConfig {
+  loadMode: TreeLoadMode;
+  defaultSelectedNodeId?: string | number | null;
+  expandRootOnLoad?: boolean;
+  allowSearch?: boolean;
+  allowDragDrop?: boolean;
+  searchPlaceholder?: LocalizedText;
+  emptyState?: LocalizedText;
+}
+
+export interface DetailFieldConfig {
+  field: string;
+  label: LocalizedText;
+  placeholder?: LocalizedText;
+  component: string;
+  required?: boolean;
+  readonly?: boolean;
+  visible?: boolean;
+  defaultValue?: string | number | boolean | null;
+  helpText?: LocalizedText;
+}
+
+export interface DetailPanelConfig {
+  mode: DetailMode;
+  entity: string;
+  entityIdField: string;
+  title: LocalizedText;
+  fields: DetailFieldConfig[];
+  tabs?: Array<{
+    key: string;
+    title: LocalizedText;
+  }>;
+}
+
+export interface OperationButtonConfig {
+  enabled: boolean;
+  text: LocalizedText;
+  confirmMessage?: LocalizedText;
+}
+
+export interface OperationConfig {
+  scope: "root" | "current-node" | "child-node" | "sibling-node";
+  inheritFieldsFromParent?: string[];
+  resetSelectionAfterSuccess?: boolean;
+}
+
+export interface ApiConfig {
+  fetchTree: string;
+  fetchDetail: string;
+  createNode: string;
+  updateNode: string;
+  deleteNode: string;
+  moveNode?: string;
+  fetchChildren?: string;
+}
+
+export interface TreeDetailBilingualConfig {
+  sceneName: string;
+  pageTitle: LocalizedText;
+  treeEntity: string;
+  detailEntity: string;
+  detailMode: DetailMode;
+  fieldMap: TreeFieldMap;
+  treeQuery: TreeQueryConfig;
+  detailPanel: DetailPanelConfig;
+  deletePolicy: DeletePolicy;
+  permissionRules: string[];
+  buttons: {
+    create: OperationButtonConfig & OperationConfig;
+    update: OperationButtonConfig & OperationConfig;
+    delete: OperationButtonConfig & OperationConfig;
+    move?: OperationButtonConfig & OperationConfig;
+  };
+  api: ApiConfig;
+}
+
+export const treeDetailBilingualTemplate: TreeDetailBilingualConfig = {
+  sceneName: "department-management",
+  pageTitle: {
+    zhCN: "部门管理",
+    enUS: "Department Management"
+  },
+  treeEntity: "department",
+  detailEntity: "departmentProfile",
+  detailMode: "mixed",
+  fieldMap: {
+    nodeIdField: "deptId",
+    parentIdField: "parentDeptId",
+    nodeCodeField: "deptCode",
+    nodeNameField: "deptName",
+    nodeNameI18nField: "deptNameI18n",
+    nodeSortField: "sortOrder",
+    rootParentValue: 0,
+    statusField: "status",
+    pathField: "deptPath",
+    leafFlagField: "isLeaf"
+  },
+  treeQuery: {
+    loadMode: "full",
+    defaultSelectedNodeId: null,
+    expandRootOnLoad: true,
+    allowSearch: true,
+    allowDragDrop: false,
+    searchPlaceholder: {
+      zhCN: "搜索部门",
+      enUS: "Search departments"
+    },
+    emptyState: {
+      zhCN: "暂无树节点",
+      enUS: "No tree nodes"
+    }
+  },
+  detailPanel: {
+    mode: "mixed",
+    entity: "departmentProfile",
+    entityIdField: "deptId",
+    title: {
+      zhCN: "部门详情",
+      enUS: "Department Detail"
+    },
+    fields: [
+      {
+        field: "deptNameI18n.zhCN",
+        label: {
+          zhCN: "部门名称（中文）",
+          enUS: "Department Name (Chinese)"
+        },
+        placeholder: {
+          zhCN: "请输入中文部门名称",
+          enUS: "Enter Chinese department name"
+        },
+        component: "input",
+        required: true
+      },
+      {
+        field: "deptNameI18n.enUS",
+        label: {
+          zhCN: "部门名称（英文）",
+          enUS: "Department Name (English)"
+        },
+        placeholder: {
+          zhCN: "请输入英文部门名称",
+          enUS: "Enter English department name"
+        },
+        component: "input",
+        required: true
+      },
+      {
+        field: "leaderId",
+        label: {
+          zhCN: "负责人",
+          enUS: "Leader"
+        },
+        placeholder: {
+          zhCN: "请选择负责人",
+          enUS: "Select a leader"
+        },
+        component: "user-select"
+      },
+      {
+        field: "status",
+        label: {
+          zhCN: "状态",
+          enUS: "Status"
+        },
+        component: "select",
+        required: true
+      }
+    ],
+    tabs: [
+      {
+        key: "basic",
+        title: {
+          zhCN: "基础信息",
+          enUS: "Basic Info"
+        }
+      },
+      {
+        key: "members",
+        title: {
+          zhCN: "成员",
+          enUS: "Members"
+        }
+      }
+    ]
+  },
+  deletePolicy: "block-when-children-exist",
+  permissionRules: [
+    "only admins can delete nodes",
+    "node names must be unique among siblings"
+  ],
+  buttons: {
+    create: {
+      enabled: true,
+      text: {
+        zhCN: "新增子部门",
+        enUS: "Add Child Department"
+      },
+      scope: "child-node",
+      inheritFieldsFromParent: ["status"],
+      resetSelectionAfterSuccess: true
+    },
+    update: {
+      enabled: true,
+      text: {
+        zhCN: "保存修改",
+        enUS: "Save Changes"
+      },
+      scope: "current-node",
+      resetSelectionAfterSuccess: false
+    },
+    delete: {
+      enabled: true,
+      text: {
+        zhCN: "删除节点",
+        enUS: "Delete Node"
+      },
+      confirmMessage: {
+        zhCN: "确认删除当前部门吗？若存在子部门则不允许删除。",
+        enUS: "Delete the current department? Deletion is blocked when child nodes exist."
+      },
+      scope: "current-node",
+      resetSelectionAfterSuccess: true
+    },
+    move: {
+      enabled: false,
+      text: {
+        zhCN: "移动节点",
+        enUS: "Move Node"
+      },
+      scope: "current-node",
+      resetSelectionAfterSuccess: false
+    }
+  },
+  api: {
+    fetchTree: "/api/department/tree",
+    fetchDetail: "/api/department/detail",
+    createNode: "/api/department/create",
+    updateNode: "/api/department/update",
+    deleteNode: "/api/department/delete",
+    moveNode: "/api/department/move"
+  }
+};
