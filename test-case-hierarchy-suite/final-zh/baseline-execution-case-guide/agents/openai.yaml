@@ -1,4 +1,4 @@
 interface:
-  display_name: "»ùÏß/Ö´ĞĞÓÃÀıÏòµ¼"
-  short_description: "½âÎöÓÃÀıÉÏÏÂÎÄ¡¢ºÏ·¨ĞÔ¡¢²éÑ¯·¶Î§ºÍĞÂ½¨Á÷³Ì¡£"
-  default_prompt: "Ê¹ÓÃ $baseline-execution-case-guide »Ø´ğ²âÊÔ²ã¼¶ÖĞ baseline_case Óë execution_case µÄ²éÑ¯¡¢Ğ£Ñé»òĞÂ½¨ÎÊÌâ¡£"
+  display_name: "åŸºçº¿/æ‰§è¡Œç”¨ä¾‹å‘å¯¼"
+  short_description: "è§£æç”¨ä¾‹ä¸Šä¸‹æ–‡ã€åˆæ³•æ€§ã€æŸ¥è¯¢èŒƒå›´å’Œæ–°å»ºæµç¨‹ã€‚"
+  default_prompt: "ä½¿ç”¨ $baseline-execution-case-guide å›ç­”æµ‹è¯•å±‚çº§ä¸­ baseline_case ä¸ execution_case çš„æŸ¥è¯¢ã€æ ¡éªŒæˆ–æ–°å»ºé—®é¢˜ã€‚"

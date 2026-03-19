@@ -1,27 +1,27 @@
-# ���������Ĺ���
+# 用例上下文规则
 
-## �����ж�����
+## 核心判定规则
 
-��������İ汾�������Ƶ��������ͣ�
+根据最近的版本祖先来推导用例类型：
 
-| ����汾���� | `directory` / `feature` �µ��������� |
+| 最近版本祖先 | `directory` / `feature` 下的用例类型 |
 | --- | --- |
 | `baseline_version` | `baseline_case` |
 | `container_version` | `baseline_case` |
 | `execution_version` | `execution_case` |
 
-��������ڿ��õİ汾���ȣ������������Ϊδ����״̬��
+如果不存在可用的版本祖先，则把上下文视为未解析状态。
 
-## ���ڵ�Ϸ���
+## 父节点合法性
 
-ֻ�����½ڵ�����ֱ�Ӱ���������
+只有以下节点允许直接包含用例：
 
-| ���ڵ����� | �Ƿ�����ֱ�ӹ����� |
+| 父节点类型 | 是否允许直接挂用例 |
 | --- | --- |
-| `directory` | �� |
-| `feature` | �� |
+| `directory` | 是 |
+| `feature` | 是 |
 
-�������Ͷ����ڷǷ�ֱ�Ӹ��ڵ㣺
+以下类型都属于非法直接父节点：
 
 - `baseline_version`
 - `container_version`
@@ -31,73 +31,73 @@
 - `space`
 - `product`
 
-## ִ�з�֧��̬У��
+## 执行分支形态校验
 
-������汾������ `execution_version` ʱ���ڸ����½����ѯ����ǰ����У��������̬��
+当最近版本祖先是 `execution_version` 时，在给出新建或查询建议前，先校验锁定形态。
 
 ### `container_direct`
 
-������·����
+允许的路径：
 
 ```text
 execution_version
-���� case_container
-   ���� directory
-   ��  ���� execution_case
-   ���� feature
-      ���� execution_case
+└─ case_container
+   ├─ directory
+   │  └─ execution_case
+   └─ feature
+      └─ execution_case
 ```
 
-��Ҫ�ܾ���
+需要拒绝：
 
-- `case_container` ��ֱ�ӳ�������
-- ͬһ��ִ�а汾����� `test_scene` ��֧
+- `case_container` 下直接出现用例
+- 同一个执行版本里混入 `test_scene` 分支
 
 ### `scene_grouped`
 
-������·����
+允许的路径：
 
 ```text
 execution_version
-���� case_container
-   ���� test_scene
-      ���� directory
-      ��  ���� execution_case
-      ���� feature
-         ���� execution_case
+└─ case_container
+   └─ test_scene
+      ├─ directory
+      │  └─ execution_case
+      └─ feature
+         └─ execution_case
 ```
 
-��Ҫ�ܾ���
+需要拒绝：
 
-- `case_container` ��ֱ�ӳ�������
-- `test_scene` ��ֱ�ӳ�������
-- `case_container` ��ֱ�ӳ��� `directory` �� `feature`
+- `case_container` 下直接出现用例
+- `test_scene` 下直接出现用例
+- `case_container` 下直接出现 `directory` 或 `feature`
 
-## ��ѯ����嵥
+## 查询检查清单
 
-���û��������������λ���л�����ʱ��������嵥��
+当用户问如何搜索、定位或切换用例时，用这个清单：
 
-1. ȷ����ǰѡ�нڵ������汾���ȡ�
-2. �жϱ��β�ѯ����Ե�ǰ�������ֵ��������Ǻ��������
-3. ��ȷ�Ƶ������������͡�
-4. ��ȷִ�з�֧�Ƿ���Ҫ��������Χ��
-5. ��ȷ�л��ĸ��ڵ�ᴥ���б�������ˢ�¡�
+1. 确定当前选中节点和最近版本祖先。
+2. 判断本次查询是针对当前用例、兄弟用例还是后代用例。
+3. 明确推导出的用例类型。
+4. 明确执行分支是否需要场景级范围。
+5. 明确切换哪个节点会触发列表或详情刷新。
 
-## �½�����嵥
+## 新建检查清单
 
-���û��������������ʱ��������嵥��
+当用户问如何新增用例时，用这个清单：
 
-1. ȷ��Ŀ�길�ڵ��� `directory` �� `feature`��
-2. ȷ������汾���ȡ�
-3. �����ִ�в࣬ȷ��ִ����̬��
-4. ���������������͡�
-5. �г������ֶκͿɼ̳�Ĭ��ֵ��
-6. ˵���½������ˢ��Ŀ�ꡣ
+1. 确认目标父节点是 `directory` 或 `feature`。
+2. 确认最近版本祖先。
+3. 如果在执行侧，确认执行形态。
+4. 产出最终用例类型。
+5. 列出必填字段和可继承默认值。
+6. 说明新建后的树刷新目标。
 
-## ��������ģʽ
+## 常见错误模式
 
-- �� `container_version` ��֧�����г� `execution_case`
-- ������ `case_container` ��ֱ�ӽ�����
-- ������ `test_scene` ��ֱ�ӽ�����
-- ���� `container_version` ��Ȼ���ڻ��߲�������
-- ѡ�нڵ���ʵ��Ŀ¼�����ԣ�ȴ����ذ��Ҳ������Ƴ���������
+- 在 `container_version` 分支里误判成 `execution_case`
+- 允许在 `case_container` 下直接建用例
+- 允许在 `test_scene` 下直接建用例
+- 忘记 `container_version` 仍然属于基线侧上下文
+- 选中节点其实是目录或特性，却错误地把右侧面板设计成用例详情

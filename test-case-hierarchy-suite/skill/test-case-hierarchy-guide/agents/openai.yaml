@@ -1,4 +1,4 @@
 interface:
-  display_name: "²âÊÔÊ÷¹æÔòÏòµ¼"
+  display_name: "æµ‹è¯•æ ‘è§„åˆ™å‘å¯¼"
   short_description: "Guide Chinese test hierarchy tree design and node rules."
   default_prompt: "Use $test-case-hierarchy-guide to design a Chinese test hierarchy tree with node rules."

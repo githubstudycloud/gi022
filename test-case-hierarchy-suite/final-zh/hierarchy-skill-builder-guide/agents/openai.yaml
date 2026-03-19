@@ -1,4 +1,4 @@
 interface:
-  display_name: "²ã¼¶ Skill ¹¹½¨Ïòµ¼"
-  short_description: "°Ñ²ã¼¶ÎÄµµºÍÑùÀıÕûÀí³É¾Û½¹¿É¸´ÓÃµÄ skill¡£"
-  default_prompt: "Ê¹ÓÃ $hierarchy-skill-builder-guide ¸ù¾İ±¾µØÎÄµµ¡¢ÑùÀıºÍÏÖÓĞ skill£¬¹¹½¨»òÖØ¹¹Ò»¸ö²ã¼¶ÁìÓò skill¡£"
+  display_name: "å±‚çº§ Skill æ„å»ºå‘å¯¼"
+  short_description: "æŠŠå±‚çº§æ–‡æ¡£å’Œæ ·ä¾‹æ•´ç†æˆèšç„¦å¯å¤ç”¨çš„ skillã€‚"
+  default_prompt: "ä½¿ç”¨ $hierarchy-skill-builder-guide æ ¹æ®æœ¬åœ°æ–‡æ¡£ã€æ ·ä¾‹å’Œç°æœ‰ skillï¼Œæ„å»ºæˆ–é‡æ„ä¸€ä¸ªå±‚çº§é¢†åŸŸ skillã€‚"
