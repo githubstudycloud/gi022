@@ -1,0 +1,4 @@
+interface:
+  display_name: "层级 Skill 构建向导"
+  short_description: "把层级文档和样例整理成聚焦可复用的 skill。"
+  default_prompt: "使用 $hierarchy-skill-builder-guide 根据本地文档、样例和现有 skill，构建或重构一个层级领域 skill。"

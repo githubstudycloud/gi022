@@ -1,0 +1,4 @@
+interface:
+  display_name: "基线/执行用例向导"
+  short_description: "解析用例上下文、合法性、查询范围和新建流程。"
+  default_prompt: "使用 $baseline-execution-case-guide 回答测试层级中 baseline_case 与 execution_case 的查询、校验或新建问题。"
