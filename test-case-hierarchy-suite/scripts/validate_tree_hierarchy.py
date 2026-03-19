@@ -9,8 +9,8 @@ RULES: Dict[str, set[str]] = {
     "product": {"container_version", "baseline_version"},
     "container_version": {"case_container", "execution_version"},
     "baseline_version": {"case_container", "execution_version"},
-    "case_container": {"directory", "feature"},
-    "execution_version": {"container_version", "test_scene"},
+    "execution_version": {"case_container"},
+    "case_container": {"directory", "feature", "test_scene"},
     "test_scene": {"feature", "directory"},
     "directory": {"directory", "feature", "baseline_case", "execution_case"},
     "feature": {"directory", "feature", "baseline_case", "execution_case"},
@@ -21,22 +21,13 @@ RULES: Dict[str, set[str]] = {
 REQUIRED_FIELDS = ["longIdPath", "shortId", "currentLevelId", "type", "name", "number"]
 
 
-class ValidationError(Exception):
-    pass
-
-
 def load_tree(path: str | Path) -> Dict[str, Any]:
     return json.loads(Path(path).read_text(encoding="utf-8"))
 
 
 def validate_tree(tree: Dict[str, Any]) -> List[str]:
     errors: List[str] = []
-    _validate_node(
-        node=tree,
-        parent=None,
-        ancestors=[],
-        errors=errors,
-    )
+    _validate_node(node=tree, parent=None, ancestors=[], errors=errors)
     return errors
 
 
@@ -89,7 +80,7 @@ def _validate_node(
         errors.append(f"{path}: children must be a list")
         return
 
-    _validate_special_rules(node=node, children=children, ancestors=ancestors, errors=errors)
+    _validate_special_rules(node=node, parent=parent, children=children, ancestors=ancestors, errors=errors)
 
     next_ancestors = ancestors + [node]
     for child in children:
@@ -98,6 +89,7 @@ def _validate_node(
 
 def _validate_special_rules(
     node: Dict[str, Any],
+    parent: Optional[Dict[str, Any]],
     children: List[Dict[str, Any]],
     ancestors: List[Dict[str, Any]],
     errors: List[str],
@@ -106,55 +98,61 @@ def _validate_special_rules(
     path = node.get("longIdPath", "<missing-path>")
     child_types = [child.get("type") for child in children]
 
-    if node_type == "baseline_version":
+    if node_type in {"baseline_version", "container_version", "execution_version"}:
         case_container_count = child_types.count("case_container")
         if case_container_count != 1:
             errors.append(
-                f"{path}: baseline_version must contain exactly one case_container, got {case_container_count}"
+                f"{path}: {node_type} must contain exactly one case_container, got {case_container_count}"
             )
 
     if node_type == "execution_version":
-        mode = (node.get("meta") or {}).get("executionMode")
-        container_count = child_types.count("container_version")
-        scene_count = child_types.count("test_scene")
-
-        if mode not in {"single_container", "multi_scene"}:
+        mode = (node.get("meta") or {}).get("lockedMode")
+        if mode not in {"container_direct", "scene_grouped"}:
             errors.append(
-                f"{path}: execution_version meta.executionMode must be "
-                "'single_container' or 'multi_scene'"
+                f"{path}: execution_version meta.lockedMode must be "
+                "'container_direct' or 'scene_grouped'"
             )
-        elif mode == "single_container":
-            if container_count != 1 or scene_count != 0:
+
+    if node_type == "case_container":
+        if "baseline_case" in child_types or "execution_case" in child_types:
+            errors.append(f"{path}: case_container cannot contain cases directly")
+
+        parent_type = parent.get("type") if parent else None
+        if parent_type in {"baseline_version", "container_version"}:
+            if "test_scene" in child_types:
                 errors.append(
-                    f"{path}: single_container mode requires exactly one container_version "
-                    "and zero test_scene children"
+                    f"{path}: case_container under {parent_type} cannot contain test_scene children"
                 )
-        elif mode == "multi_scene":
-            if scene_count < 1 or container_count != 0:
-                errors.append(
-                    f"{path}: multi_scene mode requires one or more test_scene "
-                    "and zero container_version children"
-                )
+        elif parent_type == "execution_version":
+            mode = (parent.get("meta") or {}).get("lockedMode")
+            if mode == "container_direct":
+                if "test_scene" in child_types:
+                    errors.append(
+                        f"{path}: container_direct execution version cannot contain test_scene children"
+                    )
+            elif mode == "scene_grouped":
+                if any(child_type in {"directory", "feature"} for child_type in child_types):
+                    errors.append(
+                        f"{path}: scene_grouped execution version cannot contain direct directory/feature children"
+                    )
+                if child_types.count("test_scene") < 1:
+                    errors.append(
+                        f"{path}: scene_grouped execution version must contain at least one test_scene"
+                    )
 
     if node_type == "test_scene":
-        for child in children:
-            if child.get("type") == "directory":
-                meta = child.get("meta") or {}
-                if meta.get("convertedFrom") != "feature":
-                    errors.append(
-                        f"{child.get('longIdPath', '<missing-path>')}: directory directly under "
-                        "test_scene must have meta.convertedFrom='feature'"
-                    )
+        if "baseline_case" in child_types or "execution_case" in child_types:
+            errors.append(f"{path}: test_scene cannot contain cases directly")
 
     if node_type in {"baseline_case", "execution_case"}:
         version_context = _find_version_context(ancestors)
-        if version_context == "baseline_version" and node_type != "baseline_case":
-            errors.append(f"{path}: cases under baseline_version context must be baseline_case")
+        if version_context in {"baseline_version", "container_version"} and node_type != "baseline_case":
+            errors.append(f"{path}: cases under baseline/container context must be baseline_case")
         if version_context == "execution_version" and node_type != "execution_case":
             errors.append(f"{path}: cases under execution_version context must be execution_case")
         if version_context is None:
             errors.append(
-                f"{path}: unable to infer case context because no baseline_version or execution_version "
+                f"{path}: unable to infer case context because no baseline/container/execution version "
                 "ancestor was found"
             )
 
@@ -162,7 +160,7 @@ def _validate_special_rules(
 def _find_version_context(ancestors: List[Dict[str, Any]]) -> Optional[str]:
     for ancestor in reversed(ancestors):
         ancestor_type = ancestor.get("type")
-        if ancestor_type in {"baseline_version", "execution_version"}:
+        if ancestor_type in {"baseline_version", "container_version", "execution_version"}:
             return ancestor_type
     return None
 

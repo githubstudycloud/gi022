@@ -21,19 +21,25 @@ class HierarchyRuleTests(unittest.TestCase):
     def test_execution_mode_conflict_fails(self):
         errors = validate_tree(self.fixture("invalid_execution_mode.json"))
         self.assertTrue(
-            any("single_container mode requires exactly one container_version" in error for error in errors)
+            any("scene_grouped execution version cannot contain direct directory/feature children" in error for error in errors)
         )
 
-    def test_scene_directory_without_conversion_fails(self):
+    def test_scene_direct_case_fails(self):
         errors = validate_tree(self.fixture("invalid_scene_directory.json"))
         self.assertTrue(
-            any("directory directly under test_scene must have meta.convertedFrom='feature'" in error for error in errors)
+            any("test_scene cannot contain cases directly" in error for error in errors)
+        )
+
+    def test_container_direct_case_fails(self):
+        errors = validate_tree(self.fixture("invalid_container_direct_case.json"))
+        self.assertTrue(
+            any("case_container cannot contain cases directly" in error for error in errors)
         )
 
     def test_case_context_mismatch_fails(self):
         errors = validate_tree(self.fixture("invalid_case_context.json"))
         self.assertTrue(
-            any("cases under baseline_version context must be baseline_case" in error for error in errors)
+            any("cases under baseline/container context must be baseline_case" in error for error in errors)
         )
 
 

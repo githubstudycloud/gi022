@@ -31,26 +31,36 @@
           "name": "执行版本A",
           "number": "EXEC-001",
           "meta": {
-            "executionMode": "single_container"
+            "lockedMode": "scene_grouped"
           },
           "children": [
             {
-              "longIdPath": "space-1/baseline-1/exec-1/container-version-1",
-              "shortId": "CV-1",
-              "currentLevelId": "container-version-1",
-              "type": "container_version",
-              "name": "容器版本A",
-              "number": "CV-001",
-              "children": []
-            },
-            {
-              "longIdPath": "space-1/baseline-1/exec-1/scene-1",
-              "shortId": "SC-1",
-              "currentLevelId": "scene-1",
-              "type": "test_scene",
-              "name": "非法场景",
-              "number": "SCENE-001",
-              "children": []
+              "longIdPath": "space-1/baseline-1/exec-1/exe-container-1",
+              "shortId": "ECC-1",
+              "currentLevelId": "exe-container-1",
+              "type": "case_container",
+              "name": "执行用例容器",
+              "number": "ECC-001",
+              "children": [
+                {
+                  "longIdPath": "space-1/baseline-1/exec-1/exe-container-1/dir-1",
+                  "shortId": "DIR-1",
+                  "currentLevelId": "dir-1",
+                  "type": "directory",
+                  "name": "非法目录",
+                  "number": "DIR-001",
+                  "children": []
+                },
+                {
+                  "longIdPath": "space-1/baseline-1/exec-1/exe-container-1/scene-1",
+                  "shortId": "SC-1",
+                  "currentLevelId": "scene-1",
+                  "type": "test_scene",
+                  "name": "场景A",
+                  "number": "SCENE-001",
+                  "children": []
+                }
+              ]
             }
           ]
         }

@@ -5,39 +5,43 @@
 本设计目标是把复杂业务树拆解为：
 
 - 稳定的核心节点模型
-- 可配置的父子关系规则
+- 明确的父子关系规则
 - 可扩展的动态字段机制
-- 可单独执行的树规则校验能力
-- 可复用的技能化分析模板
+- 可单独运行的树校验模块
+- 与文档一致的技能化输出模板
 
 ## 2. 设计原则
 
 ### 2.1 核心字段稳定，扩展字段外置
 
-固定字段只承载树运转最小集，业务重字段通过扩展字段表或扩展字段对象承载。
+固定字段只承载树结构最小集，重业务字段统一放在扩展字段中。
 
 ### 2.2 关系规则显式配置
 
-不要把父子关系散落在多个接口或多个组件中，应由统一规则源定义：
+不要把树规则散落在多个接口或组件里，应由统一规则源定义：
 
 - 哪些父节点允许哪些子节点
-- 哪些节点需要数量限制
-- 哪些节点存在模式互斥
-- 哪些节点存在流程性约束
+- 哪些节点必须唯一
+- 哪些节点存在锁定形态
+- 哪些节点禁止直接挂用例
 
-### 2.3 结构规则和流程规则分离
+### 2.3 结构规则优先于交互规则
 
-例如“场景下不能直接创建目录，只能先建特性再转目录”属于流程规则，不是普通静态结构规则。
-因此需要通过额外字段记录转换来源，而不是只看 `type`。
+当前版本的重点不是“场景下目录必须从特性转换”。
+当前版本的重点是：
+
+- 目录与特性等价
+- 两者可互改 `type`
+- 用例只能挂在目录或特性下
 
 ## 3. 总体方案
 
 建议采用四层模型：
 
 1. 树节点核心模型
-2. 节点类型规则模型
+2. 节点关系规则模型
 3. 动态字段定义模型
-4. 操作与校验服务
+4. 校验与操作服务
 
 ## 4. 数据模型设计
 
@@ -58,8 +62,8 @@
   "sortOrder": 100,
   "status": "active",
   "meta": {
-    "convertedFrom": null,
-    "executionMode": null
+    "lockedMode": null,
+    "sourceVersionType": "baseline_version"
   },
   "extFields": {}
 }
@@ -72,9 +76,9 @@
 | `longIdPath` | 树路径主键，逻辑上唯一，按 `/` 切分 |
 | `currentLevelId` | 当前节点自身 ID，应与 `longIdPath` 最后一段一致 |
 | `type` | 节点类型 |
-| `meta.convertedFrom` | 用于表达目录是否由特性转换而来 |
-| `meta.executionMode` | 表达执行版本当前模式，建议值为 `single_container` 或 `multi_scene` |
-| `extFields` | 额外业务字段容器 |
+| `meta.lockedMode` | 执行版本锁定形态，建议值为 `container_direct` 或 `scene_grouped` |
+| `meta.sourceVersionType` | 用于表达当前节点处于基线/容器/执行上下文 |
+| `extFields` | 扩展字段容器 |
 
 ## 5. 节点类型与关系矩阵
 
@@ -82,53 +86,82 @@
 
 | 父类型 | 允许子类型 |
 | --- | --- |
-| `space` | `product`, `container_version`, `baseline_version` |
-| `product` | `container_version`, `baseline_version` |
-| `container_version` | `case_container`, `execution_version` |
+| `space` | `product`, `baseline_version`, `container_version` |
+| `product` | `baseline_version`, `container_version` |
 | `baseline_version` | `case_container`, `execution_version` |
-| `case_container` | `directory`, `feature` |
-| `execution_version` | `container_version`, `test_scene` |
-| `test_scene` | `feature`, `directory` |
+| `container_version` | `case_container`, `execution_version` |
+| `execution_version` | `case_container` |
+| `case_container` | `directory`, `feature`, `test_scene` |
+| `test_scene` | `directory`, `feature` |
 | `directory` | `directory`, `feature`, `baseline_case`, `execution_case` |
 | `feature` | `directory`, `feature`, `baseline_case`, `execution_case` |
 
 ### 5.1 附加约束
 
 - `baseline_version` 下面必须且仅能有一个 `case_container`
-- `execution_version` 必须满足模式互斥：
-  - `single_container`：只能有一个 `container_version`
-  - `multi_scene`：只能有一个或多个 `test_scene`
-- `test_scene` 直接子目录必须满足 `meta.convertedFrom = feature`
-- `baseline_case` 与 `execution_case` 必须和最近的版本上下文一致
+- `container_version` 下面必须且仅能有一个 `case_container`
+- `execution_version` 下面必须且仅能有一个 `case_container`
+- `baseline_version` 和 `container_version` 的其他直属子节点都必须是 `execution_version`
+- `case_container` 下面不能直接挂用例
+- `test_scene` 下面不能直接挂用例
+- `feature` 和 `directory` 下面才允许挂用例
 
 ## 6. 上下文判定设计
 
 ### 6.1 用例类型判定
 
-建议按最近版本上下文判定用例类型：
+按最近版本上下文判定用例类型：
 
-- 若向上最近可判定上下文是 `execution_version`，则目录/特性下的用例必须为 `execution_case`
-- 若向上最近可判定上下文是 `baseline_version`，则目录/特性下的用例必须为 `baseline_case`
+- 最近上下文是 `baseline_version` 或 `container_version`，则目录/特性下的用例必须为 `baseline_case`
+- 最近上下文是 `execution_version`，则目录/特性下的用例必须为 `execution_case`
 
-若节点路径中既没有 `baseline_version` 也没有 `execution_version`，则当前设计不自动推断用例类型，应判定为待确认分支。
+### 6.2 执行版本的锁定形态
 
-### 6.2 场景目录转换
+执行版本存在两种组织形态：
 
-为了表达“场景下目录必须来自特性转换”，建议：
+1. `container_direct`
+2. `scene_grouped`
 
-- 保留 `directory` 作为最终类型
-- 在 `meta.convertedFrom` 中记录原始类型
-- 当目录直接位于 `test_scene` 之下时，校验 `meta.convertedFrom == "feature"`
+建议把该信息固定在：
+
+```json
+{
+  "meta": {
+    "lockedMode": "container_direct"
+  }
+}
+```
+
+或：
+
+```json
+{
+  "meta": {
+    "lockedMode": "scene_grouped"
+  }
+}
+```
+
+规则如下：
+
+- `container_direct`
+  - `execution_version -> case_container -> directory | feature -> execution_case`
+  - `case_container` 下不能出现 `test_scene`
+- `scene_grouped`
+  - `execution_version -> case_container -> test_scene -> directory | feature -> execution_case`
+  - `case_container` 下不能再直接挂 `directory` 或 `feature`
+
+执行版本一旦形成某种形态，不允许切换。
 
 ## 7. 动态字段设计
 
 ### 7.1 字段定义模型
 
-建议额外维护一份字段定义：
+建议额外维护字段定义：
 
 ```json
 {
-  "type": "baseline_version",
+  "type": "execution_version",
   "fieldKey": "owner",
   "label": "负责人",
   "component": "user-select",
@@ -141,21 +174,19 @@
 
 ### 7.2 字段渲染策略
 
-- 树上仅渲染极少数字段：名称、编号、状态、类型标识
+- 树上仅渲染少量字段：名称、编号、状态、类型
 - 右侧详情区按 `type + fieldDefinitions` 动态渲染
 - 扩展字段统一落在 `extFields`
 - 增加字段时优先新增定义，不直接改核心结构
 
 ## 8. API 设计建议
 
-当前接口较多，建议按能力分组，而不是按页面零散拆分。
-
 ### 8.1 树能力
 
 | 能力 | 建议接口 |
 | --- | --- |
 | 查询树 | `GET /tree/nodes` |
-| 懒加载子节点 | `GET /tree/nodes/{path}/children` |
+| 查询子节点 | `GET /tree/nodes/{path}/children` |
 | 查询节点摘要 | `GET /tree/nodes/{path}/summary` |
 
 ### 8.2 节点详情能力
@@ -163,8 +194,8 @@
 | 能力 | 建议接口 |
 | --- | --- |
 | 查询详情 | `GET /tree/nodes/{path}/detail` |
-| 查询动态字段定义 | `GET /tree/node-types/{type}/fields` |
-| 查询节点可执行动作 | `GET /tree/nodes/{path}/actions` |
+| 查询字段定义 | `GET /tree/node-types/{type}/fields` |
+| 查询可执行动作 | `GET /tree/nodes/{path}/actions` |
 
 ### 8.3 写操作能力
 
@@ -175,14 +206,15 @@
 | 删除节点 | `DELETE /tree/nodes/{path}` |
 | 移动节点 | `POST /tree/nodes/{path}/move` |
 | 排序节点 | `POST /tree/nodes/{path}/reorder` |
-| 特性转目录 | `POST /tree/nodes/{path}/convert-feature-to-directory` |
+| 目录改特性 | `POST /tree/nodes/{path}/convert-to-feature` |
+| 特性改目录 | `POST /tree/nodes/{path}/convert-to-directory` |
 
 ### 8.4 校验能力
 
 | 能力 | 建议接口 |
 | --- | --- |
 | 校验父子关系 | `POST /tree/validate/parent-child` |
-| 校验执行版本模式 | `POST /tree/validate/execution-mode` |
+| 校验执行版本形态 | `POST /tree/validate/execution-shape` |
 | 校验整棵树 | `POST /tree/validate/tree` |
 
 ## 9. 前端交互设计建议
@@ -207,15 +239,18 @@
 - 当前节点可执行动作
 - 当前节点子对象列表
 
-### 9.3 右侧动作栏
+### 9.3 右侧动作控制
 
 根据 `type` 和上下文决定按钮显隐：
 
-- 新建
-- 编辑
-- 删除
-- 移动
-- 转目录
+- 新建目录
+- 新建特性
+- 新建用例
+- 新建执行版本
+- 目录改特性
+- 特性改目录
+
+其中“新建用例”按钮只应出现在 `directory` 或 `feature` 节点下。
 
 ## 10. 校验实现设计
 
@@ -225,20 +260,20 @@
 - 前端提交前可复用
 - 单测可直接调用
 
-本次交付中会提供：
+本次交付中将提供：
 
 - 一个 Python 规则校验脚本
-- 一组 JSON 树结构夹具
+- 多个 JSON 树结构夹具
 - 一组单元测试
 
-## 11. 当前设计假设
+## 11. 当前设计结论
 
-为便于先落盘，当前设计采用以下假设：
+当前设计采用以下已确认结论：
 
-1. `测试版本` 与 `执行版本` 暂时等同
-2. `测试项` 与 `特性` 暂时等同
-3. 基线版本下的用例统一认定为基线用例
-4. 执行版本下的用例统一认定为执行用例
-5. 场景下的目录若直接出现，必须带 `convertedFrom=feature`
-
-如果后续业务确认不同，优先调整规则配置和校验逻辑，不优先重写整体模型。
+1. `测试版本` 与 `执行版本` 等同
+2. `测试项` 按 `directory` 处理
+3. `container_version` 按基线侧上下文处理
+4. `baseline_version`、`container_version`、`execution_version` 都必须唯一直属 `case_container`
+5. `case_container` 和 `test_scene` 下都不能直接建用例
+6. `feature` 与 `directory` 等价且允许互改 `type`
+7. `execution_version` 的组织形态一旦确定，不允许切换

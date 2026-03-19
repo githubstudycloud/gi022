@@ -4,29 +4,30 @@
 
 这份文档只做一件事：
 
-- 用你刚确认的规则，把这棵树的大致模型结构写清楚
-- 尽量用“结构树”而不是 JSON 来表达
-- 把我理解到的硬约束单独列出来，方便你逐条确认
+- 用当前已经确认的规则，把这棵树的大致模型结构写清楚
+- 主要用“结构树”表达，而不是 JSON
+- 把硬约束单独列出来，方便继续核对
 
 ## 2. 已确认的统一口径
 
-以下内容按你刚刚的反馈，作为当前确认版本：
+以下内容按当前最新确认版本整理：
 
 1. `测试版本 = 执行版本`
 2. `测试项 = 目录`
-3. `容器版本` 在结构层面等价于 `基线版本`
-4. `容器版本` 的下挂内容与 `基线版本` 类似
-5. `用例容器` 不能出现在 `场景` 下
-6. `基线版本`、`容器版本`、`执行版本` 都只能直接挂一个 `用例容器`
-7. `执行版本` 下面先挂 `用例容器`
-8. `用例容器` 下面可以挂 `场景`
-9. 一旦 `用例容器` 下挂了 `场景`，后续 `目录 / 特性 / 用例` 只能建在 `场景` 下，不能再直接建在 `用例容器` 下
-10. `执行版本` 不能切换模式
-11. `特性` 和 `目录` 等价，可以互相改 `type`
+3. `容器版本` 在结构能力上等价于 `基线版本`
+4. `基线版本` 和 `容器版本` 的直接下级都只允许：
+   - 一个 `用例容器`
+   - 零个或多个并列的 `执行版本`
+5. `基线版本` 和 `容器版本` 的直属 `用例容器` 下都是基线侧内容
+6. `执行版本` 的直接下级只允许一个 `用例容器`
+7. `执行版本` 有两种组织形态，但创建后不能切换
+8. `用例容器` 不能出现在 `场景` 下
+9. `用例容器` 和 `场景` 下都不能直接建用例
+10. 必须先建 `目录` 或 `特性`，再在其下级建用例
+11. `目录` 与 `特性` 等价，可以互改 `type`
+12. `目录/特性` 互转时，默认只改 `type`，`id/path` 保持不变
 
 ## 3. 当前节点类型
-
-先按这个集合理解：
 
 ```ts
 type NodeType =
@@ -76,91 +77,90 @@ type TreeNode = {
 
 ## 5. 总体结构树
 
-先把最大框架用树表示出来。
-
 ```text
 space
 ├─ product
 │  ├─ baseline_version
-│  │  └─ case_container
-│  │     ├─ directory
-│  │     ├─ feature
-│  │     ├─ baseline_case
-│  │     └─ execution_version
-│  │        └─ case_container
-│  │           ├─ directory / feature / execution_case
-│  │           └─ test_scene
-│  │              ├─ directory
-│  │              ├─ feature
+│  │  ├─ case_container
+│  │  │  ├─ directory
+│  │  │  │  └─ baseline_case
+│  │  │  └─ feature
+│  │  │     └─ baseline_case
+│  │  └─ execution_version
+│  │     └─ case_container
+│  │        ├─ directory
+│  │        │  └─ execution_case
+│  │        ├─ feature
+│  │        │  └─ execution_case
+│  │        └─ test_scene
+│  │           ├─ directory
+│  │           │  └─ execution_case
+│  │           └─ feature
 │  │              └─ execution_case
 │  └─ container_version
-│     └─ case_container
-│        ├─ directory
-│        ├─ feature
-│        ├─ baseline_case
-│        └─ execution_version
-│           └─ case_container
-│              ├─ directory / feature / execution_case
-│              └─ test_scene
-│                 ├─ directory
-│                 ├─ feature
+│     ├─ case_container
+│     │  ├─ directory
+│     │  │  └─ baseline_case
+│     │  └─ feature
+│     │     └─ baseline_case
+│     └─ execution_version
+│        └─ case_container
+│           ├─ directory
+│           │  └─ execution_case
+│           └─ test_scene
+│              └─ feature
 │                 └─ execution_case
 ├─ baseline_version
-│  └─ case_container
-├─ container_version
-│  └─ case_container
-└─ product
+│  ├─ case_container
+│  └─ execution_version
+└─ container_version
+   ├─ case_container
+   └─ execution_version
 ```
-
-上面这棵树只表达“能出现在哪一层”，不表达所有细约束。
-下面分场景拆开。
 
 ## 6. 结构例子一：空间下直接挂基线版本
 
 ```text
 space(主空间)
 └─ baseline_version(基线版本A)
-   └─ case_container(基线用例容器)
-      ├─ directory(一级目录)
-      │  ├─ directory(二级目录)
-      │  │  └─ baseline_case(基线用例1)
-      │  └─ feature(登录特性)
-      │     └─ baseline_case(基线用例2)
-      ├─ feature(支付特性)
-      │  └─ baseline_case(基线用例3)
-      └─ execution_version(执行版本A)
-         └─ case_container(执行用例容器)
-            ├─ directory(执行目录A)
-            ├─ feature(执行特性A)
-            └─ execution_case(执行用例1)
+   ├─ case_container(基线用例容器)
+   │  ├─ directory(一级目录)
+   │  │  ├─ directory(二级目录)
+   │  │  │  └─ baseline_case(基线用例1)
+   │  │  └─ feature(登录特性)
+   │  │     └─ baseline_case(基线用例2)
+   │  └─ feature(支付特性)
+   │     └─ baseline_case(基线用例3)
+   └─ execution_version(执行版本A)
+      └─ case_container(执行用例容器)
+         ├─ directory(执行目录A)
+         │  └─ execution_case(执行用例1)
+         └─ feature(执行特性A)
+            └─ execution_case(执行用例2)
 ```
 
 ### 这个例子的约束
 
 - `space` 可以直接挂 `baseline_version`
 - `baseline_version` 只能直接挂一个 `case_container`
-- `baseline_version` 的 `case_container` 下可以挂：
-  - `directory`
-  - `feature`
-  - `baseline_case`
-  - `execution_version`
-- 这个上下文里，目录和特性下面的用例应是 `baseline_case`
+- `baseline_version` 的其他直接子节点只能是并列的 `execution_version`
+- `baseline_version` 的 `case_container` 下只能先挂 `directory` 或 `feature`
+- `baseline_case` 必须挂在 `directory` 或 `feature` 下
 
 ## 7. 结构例子二：产品下挂容器版本
-
-因为你确认了“容器版本等价于基线版本”，所以结构上按同一套理解。
 
 ```text
 space(主空间)
 └─ product(产品A)
    └─ container_version(容器版本A)
-      └─ case_container(容器用例容器)
-         ├─ directory(冒烟目录)
-         │  └─ baseline_case(基线类用例1)
-         ├─ feature(核心链路特性)
-         │  └─ baseline_case(基线类用例2)
-         └─ execution_version(执行版本B)
-            └─ case_container(执行用例容器B)
+      ├─ case_container(容器用例容器)
+      │  ├─ directory(冒烟目录)
+      │  │  └─ baseline_case(基线类用例1)
+      │  └─ feature(核心链路特性)
+      │     └─ baseline_case(基线类用例2)
+      └─ execution_version(执行版本B)
+         └─ case_container(执行用例容器B)
+            └─ directory(执行目录B)
                └─ execution_case(执行用例1)
 ```
 
@@ -168,21 +168,10 @@ space(主空间)
 
 - `product` 可以挂 `container_version`
 - `container_version` 只能直接挂一个 `case_container`
-- `container_version` 下的挂法与 `baseline_version` 类似
-- 当前草案把 `container_version` 分支里的直接用例也暂按基线侧处理
+- `container_version` 的其他直接子节点只能是并列的 `execution_version`
+- `container_version` 分支里的目录/特性下面的用例都是 `baseline_case`
 
-这里有一个仍建议你最终再确认的点：
-
-- `container_version` 分支下的直接用例，是否真的应该归为 `baseline_case`
-
-## 8. 结构例子三：执行版本的“容器直挂内容”形态
-
-你说“执行版本不能切模式”，我这里的理解是：
-
-- 执行版本存在两种组织形态
-- 但一旦走了其中一种，就锁定，不能互相切换
-
-第一种形态是：`执行版本 -> 用例容器 -> 直接挂目录/特性/执行用例`
+## 8. 结构例子三：执行版本的容器直挂内容形态
 
 ```text
 execution_version(执行版本A)
@@ -191,21 +180,19 @@ execution_version(执行版本A)
    │  └─ execution_case(执行用例1)
    ├─ feature(支付特性)
    │  └─ execution_case(执行用例2)
-   └─ execution_case(执行用例3)
+   └─ directory(退款目录)
+      └─ execution_case(执行用例3)
 ```
 
 ### 这个例子的约束
 
 - `execution_version` 只能直接挂一个 `case_container`
 - 这里的 `case_container` 没有挂 `test_scene`
-- 因此允许直接在 `case_container` 下挂：
-  - `directory`
-  - `feature`
-  - `execution_case`
+- `case_container` 下可以直接挂 `directory` 和 `feature`
+- `case_container` 下不能直接挂 `execution_case`
+- `execution_case` 必须挂在 `directory` 或 `feature` 下
 
-## 9. 结构例子四：执行版本的“场景分组”形态
-
-第二种形态是：`执行版本 -> 用例容器 -> 场景 -> 目录/特性/执行用例`
+## 9. 结构例子四：执行版本的场景分组形态
 
 ```text
 execution_version(执行版本B)
@@ -215,20 +202,25 @@ execution_version(执行版本B)
    │  │  └─ execution_case(执行用例1)
    │  ├─ feature(验证码特性)
    │  │  └─ execution_case(执行用例2)
-   │  └─ execution_case(执行用例3)
+   │  └─ directory(短信目录)
+   │     └─ execution_case(执行用例3)
    └─ test_scene(支付场景)
       ├─ directory(支付目录)
+      │  └─ execution_case(执行用例4)
       └─ feature(退款特性)
+         └─ execution_case(执行用例5)
 ```
 
 ### 这个例子的约束
 
 - `execution_version` 只能直接挂一个 `case_container`
 - `case_container` 一旦挂了 `test_scene`
-- 那么后续 `directory / feature / execution_case` 只能建在 `test_scene` 下
+- 后续 `directory / feature / execution_case` 只能建在 `test_scene` 下
 - 不能再直接建在 `case_container` 下
+- `test_scene` 下也不能直接挂 `execution_case`
+- `execution_case` 必须挂在 `directory` 或 `feature` 下
 
-也就是说，下面这种结构应视为非法：
+下面这种结构应视为非法：
 
 ```text
 execution_version
@@ -237,13 +229,15 @@ execution_version
    └─ directory   <- 非法
 ```
 
+下面这种也应视为非法：
+
+```text
+execution_version
+└─ case_container
+   └─ execution_case   <- 非法
+```
+
 ## 10. 结构例子五：目录和特性的互转与递归
-
-你确认了“特性和目录等价，可以互相改 type”，那当前可理解成：
-
-- 两者结构能力一致
-- 两者都可以继续嵌套目录、特性、用例
-- 区别主要体现在业务语义和展示文案
 
 ```text
 case_container
@@ -254,8 +248,9 @@ case_container
 │     └─ baseline_case(用例2)
 └─ feature(特性A)
    ├─ feature(特性C)
-   ├─ directory(目录D)
-   └─ baseline_case(用例3)
+   │  └─ baseline_case(用例3)
+   └─ directory(目录D)
+      └─ baseline_case(用例4)
 ```
 
 ### 这个例子的约束
@@ -266,18 +261,17 @@ case_container
 - `feature` 可挂 `feature`
 - 两者都可挂用例
 - 两者允许互改 `type`
+- 当前理解下，互转时只改 `type`，节点 `id/path` 保持不变
 
 ## 11. 我目前理解的硬约束
-
-下面这些我建议后续直接变成程序规则。
 
 ### 11.1 顶层与中层关系
 
 ```text
 space -> product | baseline_version | container_version
 product -> baseline_version | container_version
-baseline_version -> case_container(唯一)
-container_version -> case_container(唯一)
+baseline_version -> case_container(唯一) | execution_version(*)
+container_version -> case_container(唯一) | execution_version(*)
 execution_version -> case_container(唯一)
 ```
 
@@ -285,20 +279,22 @@ execution_version -> case_container(唯一)
 
 ```text
 baseline_version
-└─ case_container
-   ├─ directory
-   ├─ feature
-   ├─ baseline_case
-   └─ execution_version
+├─ case_container
+│  ├─ directory
+│  │  └─ baseline_case
+│  └─ feature
+│     └─ baseline_case
+└─ execution_version(*)
 ```
 
 ```text
 container_version
-└─ case_container
-   ├─ directory
-   ├─ feature
-   ├─ baseline_case
-   └─ execution_version
+├─ case_container
+│  ├─ directory
+│  │  └─ baseline_case
+│  └─ feature
+│     └─ baseline_case
+└─ execution_version(*)
 ```
 
 ### 11.3 执行侧关系
@@ -306,17 +302,20 @@ container_version
 ```text
 execution_version
 └─ case_container
-   ├─ directory / feature / execution_case
+   ├─ directory / feature
+   │  └─ execution_case
    └─ test_scene
       ├─ directory
-      ├─ feature
-      └─ execution_case
+      │  └─ execution_case
+      └─ feature
+         └─ execution_case
 ```
 
 但这里有一个强约束：
 
 - `case_container` 下如果已经出现 `test_scene`
 - 就不能再在 `case_container` 下直接建 `directory / feature / execution_case`
+- 无论哪种形态，`case_container` 下都不能直接建用例
 
 ### 11.4 场景约束
 
@@ -324,7 +323,7 @@ execution_version
 - `test_scene` 下可以挂：
   - `directory`
   - `feature`
-  - `execution_case`
+- `test_scene` 下不能直接挂用例
 
 ### 11.5 目录/特性约束
 
@@ -335,17 +334,15 @@ execution_version
   - `feature`
   - 用例
 
-## 12. 仍建议你最后再确认的点
+## 12. 当前版本不再作为待确认的点
 
-这几个点我已经尽量按你的反馈收敛了，但最好你再拍一下：
+以下内容本轮已经明确，不再保留为待确认项：
 
-1. `baseline_version` / `container_version` 的 `case_container` 下，是否允许直接挂 `execution_version`
-2. `baseline_version` / `container_version` 分支下，直接挂的用例是否统一都算 `baseline_case`
-3. `execution_version` 的两种组织形态是否都存在：
-   - 容器直挂内容
-   - 容器挂场景
-4. 如果一个 `execution_version` 已经在“容器直挂内容”形态下创建了内容，是否明确禁止后续再加 `test_scene`
-5. `feature` 和 `directory` 互转时，是否只改 `type`，其余 `id/path` 保持不变
+1. `baseline_version` / `container_version` 的 `case_container` 外的直接子节点可以是并列的 `execution_version`
+2. `baseline_version` / `container_version` 分支下，目录和特性下面的用例统一按 `baseline_case` 处理
+3. `execution_version` 的两种组织形态都存在
+4. 如果一个 `execution_version` 已经在“容器直挂内容”形态下创建了内容，就不能再加 `test_scene`
+5. `feature` 和 `directory` 互转时，只改 `type`，其余 `id/path` 保持不变
 
 ## 13. 下一步建议
 
