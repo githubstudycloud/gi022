@@ -1,0 +1,4 @@
+interface:
+  display_name: "Tree Detail CRUD Guide"
+  short_description: "Define tree/detail CRUD params and workflow."
+  default_prompt: "Use $tree-detail-crud-guide to design a left-tree right-detail CRUD flow."

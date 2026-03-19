@@ -1,0 +1,123 @@
+{
+  "sceneName": "department-management",
+  "treeEntity": "department",
+  "detailEntity": "departmentProfile",
+  "detailMode": "current-node-detail",
+  "selectionBehavior": "fetch-detail",
+  "uniquenessRules": [
+    "nodeLabel must be unique among siblings"
+  ],
+  "permissionRules": [
+    "only admins can delete nodes"
+  ],
+  "fieldMap": {
+    "nodeIdField": "deptId",
+    "parentIdField": "parentDeptId",
+    "nodeLabelField": "deptName",
+    "nodeSortField": "sortOrder",
+    "rootParentValue": 0,
+    "statusField": "status",
+    "pathField": "deptPath",
+    "leafFlagField": "isLeaf"
+  },
+  "treeQuery": {
+    "loadMode": "full",
+    "defaultSelectedNodeId": null,
+    "expandRootOnLoad": true,
+    "allowSearch": true,
+    "allowDragDrop": false,
+    "searchPlaceholder": "Search department"
+  },
+  "detailPanel": {
+    "mode": "current-node-detail",
+    "entity": "departmentProfile",
+    "entityIdField": "deptId",
+    "titleField": "deptName",
+    "fields": [
+      {
+        "field": "deptName",
+        "label": "Department Name",
+        "component": "input",
+        "required": true
+      },
+      {
+        "field": "leaderId",
+        "label": "Leader",
+        "component": "user-select"
+      },
+      {
+        "field": "status",
+        "label": "Status",
+        "component": "select",
+        "required": true
+      },
+      {
+        "field": "remark",
+        "label": "Remark",
+        "component": "textarea"
+      }
+    ],
+    "tabs": [
+      "basic",
+      "members",
+      "audit"
+    ]
+  },
+  "operations": {
+    "query": {
+      "enabled": true,
+      "trigger": "toolbar",
+      "scope": "current-node",
+      "resetSelectionAfterSuccess": false
+    },
+    "create": {
+      "enabled": true,
+      "trigger": "toolbar",
+      "scope": "child-node",
+      "requiredFields": [
+        "deptName",
+        "parentDeptId"
+      ],
+      "inheritFieldsFromParent": [
+        "status"
+      ],
+      "resetSelectionAfterSuccess": true
+    },
+    "update": {
+      "enabled": true,
+      "trigger": "detail-header",
+      "scope": "current-node",
+      "requiredFields": [
+        "deptId",
+        "deptName",
+        "status"
+      ],
+      "resetSelectionAfterSuccess": false
+    },
+    "delete": {
+      "enabled": true,
+      "policy": "block-when-children-exist",
+      "confirmMessage": "Delete the selected department?",
+      "fallbackSelectedNodeStrategy": "select-parent"
+    },
+    "move": {
+      "enabled": false,
+      "trigger": "context-menu",
+      "scope": "current-node",
+      "requiredFields": [
+        "deptId",
+        "parentDeptId",
+        "sortOrder"
+      ],
+      "resetSelectionAfterSuccess": false
+    }
+  },
+  "api": {
+    "fetchTree": "/api/department/tree",
+    "fetchDetail": "/api/department/detail",
+    "createNode": "/api/department/create",
+    "updateNode": "/api/department/update",
+    "deleteNode": "/api/department/delete",
+    "moveNode": "/api/department/move"
+  }
+}
